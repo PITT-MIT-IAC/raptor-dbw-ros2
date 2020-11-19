@@ -27,6 +27,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "raptor_dbw_can/DbwNode.hpp"
+#include <iostream>
 
 #include <algorithm>
 #include <cmath>
@@ -818,7 +819,6 @@ void DbwNode::recvAcceleratorPedalCmd(
   }
 
   can_msgs::msg::Frame frame = message->GetFrame();
-
   pub_can_->publish(frame);
 }
 
