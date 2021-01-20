@@ -48,6 +48,7 @@
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.actions import LifecycleNode
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import ThisLaunchFileDir
 from ament_index_python import get_package_share_directory
@@ -73,9 +74,10 @@ def generate_launch_description():
                     {"dbw_dbc_file": dbc_file_path}
                 ],
             ),
-            Node(
+            LifecycleNode(
                 package='kvaser_interface',
-                executable='kvaser_can_bridge',
+                node_executable='kvaser_can_bridge',
+                node_name = "kvaser_interface",
                 output='screen',
                 namespace='',
                 parameters=[params_file]),

@@ -62,7 +62,7 @@ set(msg_files
   "msg/DoorState.msg"
   "msg/HighBeamState.msg"
   "msg/HornState.msg"
-  "msg/test.msg"
+  "msg/Test.msg"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

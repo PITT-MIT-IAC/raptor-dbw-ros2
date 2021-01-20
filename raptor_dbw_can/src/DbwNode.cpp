@@ -36,6 +36,7 @@
 namespace raptor_dbw_can
 {
 
+<<<<<<< HEAD
 DbwNode::DbwNode(const rclcpp::NodeOptions & options)
 : Node("raptor_dbw_can_node", options)
 {
@@ -169,6 +170,137 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
 
   // Set up Timer
   timer_ = this->create_wall_timer(
+=======
+  DbwNode::DbwNode(const rclcpp::NodeOptions & options)
+  : Node("raptor_dbw_can_node", options)
+  {
+
+    dbcFile_ = this->declare_parameter("dbw_dbc_file", "");
+
+    // Initialize enable state machine
+    prev_enable_ = true;
+    enable_ = false;
+    override_brake_ = false;
+    override_accelerator_pedal_ = false;
+    override_steering_ = false;
+    override_gear_ = false;
+    fault_brakes_ = false;
+    fault_accelerator_pedal_ = false;
+    fault_steering_ = false;
+    fault_steering_cal_ = false;
+    fault_watchdog_ = false;
+    fault_watchdog_using_brakes_ = false;
+    fault_watchdog_warned_ = false;
+    timeout_brakes_ = false;
+    timeout_accelerator_pedal_ = false;
+    timeout_steering_ = false;
+    enabled_brakes_ = false;
+    enabled_accelerator_pedal_ = false;
+    enabled_steering_ = false;
+    gear_warned_ = false;
+
+    // Frame ID
+    frame_id_ = "base_footprint";
+    this->declare_parameter<std::string>("frame_id", frame_id_);
+    //priv_nh.getParam("frame_id", frame_id_);
+
+    // Buttons (enable/disable)
+    buttons_ = true;
+    this->declare_parameter<bool>("buttons", buttons_);
+    //priv_nh.getParam("buttons", buttons_);
+
+
+    // Ackermann steering parameters
+    acker_wheelbase_ = 2.8498; // 112.2 inches
+    acker_track_ = 1.5824; // 62.3 inches
+    steering_ratio_ = 14.8;
+    this->declare_parameter<double>("ackermann_wheelbase", acker_wheelbase_);
+    this->declare_parameter<double>("ackermann_track", acker_track_);
+    this->declare_parameter<double>("steering_ratio", steering_ratio_);
+
+    //priv_nh.getParam("ackermann_wheelbase", acker_wheelbase_);
+    //priv_nh.getParam("ackermann_track", acker_track_);
+    //priv_nh.getParam("steering_ratio", steering_ratio_);
+
+    // Initialize joint states
+    joint_state_.position.resize(JOINT_COUNT);
+    joint_state_.velocity.resize(JOINT_COUNT);
+    joint_state_.effort.resize(JOINT_COUNT);
+    joint_state_.name.resize(JOINT_COUNT);
+    joint_state_.name[JOINT_FL] = "wheel_fl"; // Front Left
+    joint_state_.name[JOINT_FR] = "wheel_fr"; // Front Right
+    joint_state_.name[JOINT_RL] = "wheel_rl"; // Rear Left
+    joint_state_.name[JOINT_RR] = "wheel_rr"; // Rear Right
+    joint_state_.name[JOINT_SL] = "steer_fl";
+    joint_state_.name[JOINT_SR] = "steer_fr";
+
+    // Set up Publishers
+    pub_can_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 20);
+    pub_brake_ = this->create_publisher<raptor_dbw_msgs::msg::BrakeReport>("brake_report", 20);
+    pub_accel_pedal_ = this->create_publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>("accelerator_pedal_report", 20);
+    pub_steering_ = this->create_publisher<raptor_dbw_msgs::msg::SteeringReport>("steering_report", 20);
+    pub_gear_ = this->create_publisher<raptor_dbw_msgs::msg::GearReport>("gear_report", 20);
+    pub_wheel_speeds_ = this->create_publisher<raptor_dbw_msgs::msg::WheelSpeedReport>("wheel_speed_report", 20);
+    pub_wheel_positions_ = this->create_publisher<raptor_dbw_msgs::msg::WheelPositionReport>("wheel_position_report", 20);
+    pub_tire_pressure_ = this->create_publisher<raptor_dbw_msgs::msg::TirePressureReport>("tire_pressure_report", 20);
+    pub_surround_ = this->create_publisher<raptor_dbw_msgs::msg::SurroundReport>("surround_report", 20);
+
+    pub_low_voltage_system_ = this->create_publisher<raptor_dbw_msgs::msg::LowVoltageSystemReport>("low_voltage_system_report", 2);
+
+    pub_brake_2_report_ = this->create_publisher<raptor_dbw_msgs::msg::Brake2Report>("brake_2_report", 20);
+    pub_steering_2_report_ = this->create_publisher<raptor_dbw_msgs::msg::Steering2Report>("steering_2_report", 20);
+    pub_fault_actions_report_ = this->create_publisher<raptor_dbw_msgs::msg::FaultActionsReport>("fault_actions_report", 20);
+    pub_hmi_global_enable_report_ = this->create_publisher<raptor_dbw_msgs::msg::HmiGlobalEnableReport>("hmi_global_enable_report", 20);
+
+    pub_imu_ = this->create_publisher<sensor_msgs::msg::Imu>("imu/data_raw", 10);
+    pub_joint_states_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+    pub_twist_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("twist", 10);
+    pub_vin_ = this->create_publisher<std_msgs::msg::String>("vin", 1);
+    pub_driver_input_ = this->create_publisher<raptor_dbw_msgs::msg::DriverInputReport>("driver_input_report", 2);
+    pub_misc_ = this->create_publisher<raptor_dbw_msgs::msg::MiscReport>("misc_report", 2);
+    pub_sys_enable_ = this->create_publisher<std_msgs::msg::Bool>("dbw_enabled", 1);
+    pub_test_ = this->create_publisher<raptor_dbw_msgs::msg::Test>("test_topic_pub", 1);
+    publishDbwEnabled();
+
+    // Set up Subscribers
+    sub_enable_ = this->create_subscription<std_msgs::msg::Empty>(
+      "enable", 10, std::bind(&DbwNode::recvEnable, this, std::placeholders::_1));
+
+    sub_disable_ = this->create_subscription<std_msgs::msg::Empty>(
+      "disable", 10, std::bind(&DbwNode::recvDisable, this, std::placeholders::_1));
+
+    sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
+      "can_rx", 500, std::bind(&DbwNode::recvCAN, this, std::placeholders::_1));
+
+    sub_brake_ = this->create_subscription<raptor_dbw_msgs::msg::BrakeCmd>(
+      "brake_cmd", 1, std::bind(&DbwNode::recvBrakeCmd, this, std::placeholders::_1));
+
+    sub_accelerator_pedal_ = this->create_subscription<raptor_dbw_msgs::msg::AcceleratorPedalCmd>(
+      "accelerator_pedal_cmd", 1, std::bind(&DbwNode::recvAcceleratorPedalCmd, this, std::placeholders::_1));
+
+    sub_steering_ = this->create_subscription<raptor_dbw_msgs::msg::SteeringCmd>(
+      "steering_cmd", 1, std::bind(&DbwNode::recvSteeringCmd, this, std::placeholders::_1));
+
+    sub_gear_ = this->create_subscription<raptor_dbw_msgs::msg::GearCmd>(
+      "gear_cmd", 1, std::bind(&DbwNode::recvGearCmd, this, std::placeholders::_1));
+
+    sub_misc_ = this->create_subscription<raptor_dbw_msgs::msg::MiscCmd>(
+      "misc_cmd", 1, std::bind(&DbwNode::recvMiscCmd, this, std::placeholders::_1));
+
+    sub_global_enable_ = this->create_subscription<raptor_dbw_msgs::msg::GlobalEnableCmd>(
+      "global_enable_cmd", 1, std::bind(&DbwNode::recvGlobalEnableCmd, this, std::placeholders::_1));
+
+    sub_test_ = this->create_subscription<raptor_dbw_msgs::msg::Test>(
+      "test_topic", 1, std::bind(&DbwNode::testTxCAN, this, std::placeholders::_1));
+
+    pdu1_relay_pub_ = this->create_publisher<pdu_msgs::msg::RelayCommand>("/pduB/relay_cmd", 1000);
+    count_ = 0;
+
+    dbwDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFile_);
+
+    // Set up Timer
+    timer_ = this->create_wall_timer(
+>>>>>>> lifecycle node flag, need to test it
     200ms, std::bind(&DbwNode::timerCallback, this));
 }
 
@@ -424,7 +556,27 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
       case ID_REPORT_TIRE_PRESSURE:
         {
+<<<<<<< HEAD
           NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_REPORT_TIRE_PRESSURE);
+=======
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TEST);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::Test out;
+            out.test1  = message->GetSignal("test1")->GetResult();
+            out.test2 = message->GetSignal("test2")->GetResult();
+            std::cout << "receiving can" << std::endl;
+            pub_test_->publish(out);
+          }
+        }
+      break;
+
+        case ID_REPORT_TIRE_PRESSURE:
+        {
+          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_REPORT_TIRE_PRESSURE);
+>>>>>>> lifecycle node flag, need to test it
 
           if (msg->dlc >= message->GetDlc()) {
             message->SetFrame(msg);
@@ -813,7 +965,7 @@ void DbwNode::recvAcceleratorPedalCmd(
 
   NewEagle::DbcSignal * cnt = message->GetSignal("AKit_AccelPdlRollingCntr");
   cnt->SetResult(msg->rolling_counter);
-
+  
   if (msg->ignore) {
     message->GetSignal("Akit_AccelPdlIgnoreDriverOvrd")->SetResult(1);
   }
