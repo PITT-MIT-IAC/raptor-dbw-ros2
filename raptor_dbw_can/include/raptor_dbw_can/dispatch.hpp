@@ -74,6 +74,8 @@ enum
   ID_FAULT_ACTION_REPORT        = 0x1F15,
   ID_HMI_GLOBAL_ENABLE_REPORT   = 0x3f01,
   ID_TEST                       = 0x0718,
+  ID_MISC_REPORT_DO             = 0x0515,
+  ID_COMP_TEAM_REPORT           = 0x0516,
 };
 
 }  // namespace raptor_dbw_can

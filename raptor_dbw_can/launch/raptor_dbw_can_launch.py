@@ -73,6 +73,10 @@ def generate_launch_description():
                 parameters=[
                     {"dbw_dbc_file": dbc_file_path}
                 ],
+                remappings=[
+                    ('/raptor_dbw_interface/can_rx', '/can_rx_tx/can_tx'),
+                    ('/raptor_dbw_interface/can_tx', '/can_rx_tx/can_rx'),
+                ],
             ),
             LifecycleNode(
                 package='kvaser_interface',

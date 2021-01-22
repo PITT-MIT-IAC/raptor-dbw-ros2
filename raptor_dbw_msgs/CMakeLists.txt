@@ -63,6 +63,8 @@ set(msg_files
   "msg/HighBeamState.msg"
   "msg/HornState.msg"
   "msg/Test.msg"
+  "msg/MiscReportDo.msg"
+  "msg/RcToCt.msg"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

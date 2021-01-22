@@ -260,6 +260,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
     pub_misc_ = this->create_publisher<raptor_dbw_msgs::msg::MiscReport>("misc_report", 2);
     pub_sys_enable_ = this->create_publisher<std_msgs::msg::Bool>("dbw_enabled", 1);
     pub_test_ = this->create_publisher<raptor_dbw_msgs::msg::Test>("test_topic_pub", 1);
+    pub_misc_do_ = this->create_publisher<raptor_dbw_msgs::msg::MiscReportDo>("misc_report_do", 2);
+    pub_rc_to_ct_ = this->create_publisher<raptor_dbw_msgs::msg::RcToCt>("rc_to_ct", 2);
     publishDbwEnabled();
 
     // Set up Subscribers
@@ -292,6 +294,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
 
     sub_test_ = this->create_subscription<raptor_dbw_msgs::msg::Test>(
       "test_topic", 1, std::bind(&DbwNode::testTxCAN, this, std::placeholders::_1));
+
+    sub_mode_request_ = this->create_subscription<std_msgs::msg::UInt8>(
+      "disable", 10, std::bind(&DbwNode::recvModeRequest, this, std::placeholders::_1));
 
     pdu1_relay_pub_ = this->create_publisher<pdu_msgs::msg::RelayCommand>("/pduB/relay_cmd", 1000);
     count_ = 0;
@@ -571,7 +576,42 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             pub_test_->publish(out);
           }
         }
-      break;
+        break;
+
+        case ID_MISC_REPORT_DO:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MISC_REPORT_DO);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::MiscReportDo out;
+            out.off_grid_power_connection  = message->GetSignal("off_grid_power_connection")->GetResult();
+            out.dbw_ready = message->GetSignal("dbw_ready")->GetResult();
+            out.ecu_ready = message->GetSignal("ecu_ready")->GetResult();
+            out.gnss_ready = message->GetSignal("gnss_ready")->GetResult();
+            out.current_raptor_mode = message->GetSignal("current_mode")->GetResult();
+            out.crank_switch_enabled = message->GetSignal("ecu_ready")->GetResult();
+            pub_misc_do_->publish(out);
+          }
+        }
+        break;
+
+        case ID_COMP_TEAM_REPORT:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MISC_REPORT_DO);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::RcToCt out;
+            out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
+            out.race_flag = message->GetSignal("DBW_RaceFlag")->GetResult();
+            out.rolling_counter = message->GetSignal("DBW_RollingCounter")->GetResult();
+            pub_rc_to_ct_->publish(out);
+          }
+        }
+        break;
 
         case ID_REPORT_TIRE_PRESSURE:
         {
@@ -973,6 +1013,16 @@ void DbwNode::recvAcceleratorPedalCmd(
   can_msgs::msg::Frame frame = message->GetFrame();
   pub_can_->publish(frame);
 }
+
+void DbwNode::recvModeRequest(const std_msgs::msg::UInt8::SharedPtr msg) {
+
+  NewEagle::DbcMessage* message = dbwDbc_.GetMessage("Akit_ModeRequest");
+  message->GetSignal("mode_request")->SetResult(msg->data);
+  can_msgs::msg::Frame frame = message->GetFrame();
+
+  pub_can_->publish(frame);
+  }
+
 
 void DbwNode::recvSteeringCmd(const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg)
 {
