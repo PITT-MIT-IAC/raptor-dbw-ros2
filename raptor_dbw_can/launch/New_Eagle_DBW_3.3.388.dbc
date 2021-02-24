@@ -1,4 +1,4 @@
-VERSION ""
+VERSION "HIPBNYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/4/%%%/4/'%**4YYY///"
 
 
 NS_ : 
@@ -22,14 +22,6 @@ NS_ :
 	SIG_GROUP_
 	SIG_VALTYPE_
 	SIGTYPE_VALTYPE_
-	BO_TX_BU_
-	BA_DEF_REL_
-	BA_REL_
-	BA_DEF_DEF_REL_
-	BU_SG_REL_
-	BU_EV_REL_
-	BU_BO_REL_
-	SG_MUL_VAL_
 
 BS_:
 
@@ -364,6 +356,14 @@ BO_ 1302 DBW_CompTeamReport: 8 DBW
  SG_ DBW_RaceFlag : 8|16@1+ (1,0) [0|1000000] "" Vector__XXX
  SG_ DBW_RollingCounter : 24|8@1+ (1,0) [0|255] "" Vector__XXX
 
+BO_ 1404 Akit_CT_status: 8 Vector__XXX
+ SG_ vehicle_id : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ current_vehicle_speed : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ current_race_flag : 24|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ current_latitude : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ current_longitude : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ current_ct_mode : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ rolling_counter : 48|8@1+ (1,0) [0|0] "" Vector__XXX
 
 
 CM_ BU_ Pacifica "Just added a custom VIN-read message from this module";
@@ -1254,4 +1254,3 @@ VAL_ 2147491604 DBW_LeftRearDoorState 0 "Undefined" 1 "Closed" 2 "Open" 3 "SNA (
 VAL_ 2147491604 DBW_LiftgateDoorState 0 "Undefined" 1 "Closed" 2 "Open" 3 "SNA (Faulted or Not Supported)" ;
 VAL_ 2147491604 DBW_HornState 0 "Off" 1 "On" 3 "SNA (Faulted or Not Supported)" ;
 VAL_ 2147491604 DBW_LowBeamState 0 "Undefined" 1 "On" 2 "Reserved" 3 "SNA (Faulted or Not Supported)" ;
-

@@ -1,8 +1,0 @@
-float32 battery_voltage
-bool off_grid_power_connection
-bool dbw_ready
-bool ecu_ready
-bool gnss_ready
-bool crank_switch_enabled
-uint8 current_raptor_mode
-

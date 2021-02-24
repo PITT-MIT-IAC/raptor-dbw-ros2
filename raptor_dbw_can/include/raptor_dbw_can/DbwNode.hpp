@@ -58,8 +58,10 @@
 #include <raptor_dbw_msgs/msg/tire_pressure_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_position_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
-#include <raptor_dbw_msgs/msg/misc_report_do.hpp>
-#include <raptor_dbw_msgs/msg/rc_to_ct.hpp>
+#include <deep_orange_msgs/msg/ct_status.hpp>
+#include <deep_orange_msgs/msg/misc_report.hpp>
+#include <deep_orange_msgs/msg/rc_to_ct.hpp>
+
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -102,6 +104,7 @@ private:
   void recvMiscCmd(const raptor_dbw_msgs::msg::MiscCmd::SharedPtr msg);
   void recvGlobalEnableCmd(const raptor_dbw_msgs::msg::GlobalEnableCmd::SharedPtr msg);
   void recvModeRequest(const std_msgs::msg::UInt8::SharedPtr msg);
+  void recvCtStatus(const deep_orange_msgs::msg::CtStatus::SharedPtr msg);
 
   rclcpp::TimerBase::SharedPtr timer_;
   bool prev_enable_;
@@ -196,6 +199,7 @@ private:
   rclcpp::Subscription<raptor_dbw_msgs::msg::MiscCmd>::SharedPtr sub_misc_;
   rclcpp::Subscription<raptor_dbw_msgs::msg::GlobalEnableCmd>::SharedPtr sub_global_enable_;
   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr sub_mode_request_;
+  rclcpp::Subscription<deep_orange_msgs::msg::CtStatus>::SharedPtr sub_ct_status_;
 
   // Published topics
   rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
@@ -222,8 +226,8 @@ private:
   rclcpp::Publisher<raptor_dbw_msgs::msg::FaultActionsReport>::SharedPtr pub_fault_actions_report_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::HmiGlobalEnableReport>::SharedPtr
     pub_hmi_global_enable_report_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::MiscReportDo>::SharedPtr pub_misc_do_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
+  rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr pub_misc_do_;
+  rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
 
   NewEagle::Dbc dbwDbc_;
   std::string dbcFile_;

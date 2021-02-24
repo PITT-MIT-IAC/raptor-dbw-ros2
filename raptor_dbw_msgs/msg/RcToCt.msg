@@ -1,3 +1,0 @@
-uint8 current_position
-uint16 race_flag
-uint8 rolling_counter
