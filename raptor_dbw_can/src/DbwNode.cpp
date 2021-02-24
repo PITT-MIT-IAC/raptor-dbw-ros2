@@ -431,25 +431,6 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_REPORT_TIRE_PRESSURE:
-        {
-<<<<<<< HEAD
-          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_REPORT_TIRE_PRESSURE);
-=======
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TEST);
-          if (msg->dlc >= message->GetDlc()) {
-
-            message->SetFrame(msg);
-
-            raptor_dbw_msgs::msg::Test out;
-            out.test1  = message->GetSignal("test1")->GetResult();
-            out.test2 = message->GetSignal("test2")->GetResult();
-            std::cout << "receiving can" << std::endl;
-            pub_test_->publish(out);
-          }
-        }
-        break;
-
         case ID_MISC_REPORT_DO:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MISC_REPORT_DO);
@@ -486,10 +467,10 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-        case ID_REPORT_TIRE_PRESSURE:
+      case ID_REPORT_TIRE_PRESSURE:
         {
-          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_REPORT_TIRE_PRESSURE);
->>>>>>> lifecycle node flag, need to test it
+          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_REPORT_TIRE_PRESSURE);
+         
 
           if (msg->dlc >= message->GetDlc()) {
             message->SetFrame(msg);
