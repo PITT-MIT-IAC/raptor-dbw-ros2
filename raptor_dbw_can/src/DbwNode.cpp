@@ -133,6 +133,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   pub_sys_enable_ = this->create_publisher<std_msgs::msg::Bool>("dbw_enabled", 1);
   pub_misc_do_ = this->create_publisher<deep_orange_msgs::msg::MiscReport>("misc_report_do", 2);
   pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 2);
+  pub_pos_time_ = this->create_publisher<deep_orange_msgs::msg::PosTime>("pos_time", 2);
   publishDbwEnabled();
 
   // Set up Subscribers
@@ -443,7 +444,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             out.dbw_ready = message->GetSignal("dbw_ready")->GetResult();
             out.ecu_ready = message->GetSignal("ecu_ready")->GetResult();
             out.gnss_ready = message->GetSignal("gnss_ready")->GetResult();
-            out.current_raptor_mode = message->GetSignal("current_mode")->GetResult();
+            out.test_switch_enabled = message->GetSignal("test_switch_enabled")->GetResult(); 
             out.crank_switch_enabled = message->GetSignal("crank_switch_enabled")->GetResult();
             out.battery_voltage = message->GetSignal("battery_voltage")->GetResult();
             pub_misc_do_->publish(out);
@@ -460,12 +461,29 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
             deep_orange_msgs::msg::RcToCt out;
             out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
-            out.race_flag = message->GetSignal("DBW_RaceFlag")->GetResult();
+            out.track_condition = message->GetSignal("DBW_track_condition")->GetResult(); 
+            // TODO: adding statements for arrays of black checkered purple flags
             out.rolling_counter = message->GetSignal("DBW_RollingCounter")->GetResult();
             pub_rc_to_ct_->publish(out);
           }
         }
         break;
+
+        case ID_POS_TIME:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_POS_TIME);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            deep_orange_msgs::msg::PosTime out;
+            out.time_to_p1  = message->GetSignal("DBW_time_to_p1")->GetResult();
+            pub_pos_time_->publish(out);
+          }
+        }
+        break;
+
+        // TODO: Add coordinates.msg, subscriber with message larger than 64 bits
 
       case ID_REPORT_TIRE_PRESSURE:
         {
@@ -876,7 +894,7 @@ void DbwNode::recvAcceleratorPedalCmd(
   message->GetSignal("current_race_flag")->SetResult(msg->current_race_flag);
   message->GetSignal("current_latitude")->SetResult(msg->current_latitude);
   message->GetSignal("current_longitude")->SetResult(msg->current_longitude);
-  message->GetSignal("current_ct_mode")->SetResult(msg->current_ct_mode);
+  message->GetSignal("current_ct_state")->SetResult(msg->current_ct_state); 
   message->GetSignal("rolling_counter")->SetResult(msg->rolling_counter);
   can_msgs::msg::Frame frame = message->GetFrame();
 

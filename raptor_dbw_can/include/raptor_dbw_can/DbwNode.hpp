@@ -61,6 +61,8 @@
 #include <deep_orange_msgs/msg/ct_status.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
 #include <deep_orange_msgs/msg/rc_to_ct.hpp>
+#include <deep_orange_msgs/msg/pos_time.hpp>
+#include <deep_orange_msgs/msg/coordinates.hpp>
 
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -228,6 +230,7 @@ private:
     pub_hmi_global_enable_report_;
   rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr pub_misc_do_;
   rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
+  rclcpp::Publisher<deep_orange_msgs::msg::PosTime>::SharedPtr pub_pos_time_;
 
   NewEagle::Dbc dbwDbc_;
   std::string dbcFile_;

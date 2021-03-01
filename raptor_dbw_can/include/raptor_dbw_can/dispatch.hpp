@@ -76,6 +76,7 @@ enum
   ID_TEST                       = 0x0718,
   ID_MISC_REPORT_DO             = 0x0515,
   ID_COMP_TEAM_REPORT           = 0x0516,
+  ID_POS_TIME                   = 0x0517,
 };
 
 }  // namespace raptor_dbw_can
