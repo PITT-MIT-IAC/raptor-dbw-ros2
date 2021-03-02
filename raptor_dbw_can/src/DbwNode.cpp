@@ -133,7 +133,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   pub_sys_enable_ = this->create_publisher<std_msgs::msg::Bool>("dbw_enabled", 1);
   pub_misc_do_ = this->create_publisher<deep_orange_msgs::msg::MiscReport>("misc_report_do", 2);
   pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 2);
-  pub_pos_time_ = this->create_publisher<deep_orange_msgs::msg::PosTime>("pos_time", 2);
+  // pub_pos_time_ = this->create_publisher<deep_orange_msgs::msg::PosTime>("pos_time", 2);
   publishDbwEnabled();
 
   // Set up Subscribers
@@ -168,8 +168,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   sub_mode_request_ = this->create_subscription<std_msgs::msg::UInt8>(
       "mode_request", 10, std::bind(&DbwNode::recvModeRequest, this, std::placeholders::_1));
 
-  sub_ct_status_ = this->create_subscription<deep_orange_msgs::msg::CtStatus>(
-      "ct_status", 1, std::bind(&DbwNode::recvCtStatus, this, std::placeholders::_1));
+  sub_ct_status_ = this->create_subscription<deep_orange_msgs::msg::CtReport>(
+      "ct_status", 1, std::bind(&DbwNode::recvCtReport, this, std::placeholders::_1));
 
 
   pdu1_relay_pub_ = this->create_publisher<pdu_msgs::msg::RelayCommand>("/pduB/relay_cmd", 1000);
@@ -443,9 +443,9 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             out.off_grid_power_connection  = message->GetSignal("off_grid_power_connection")->GetResult();
             out.dbw_ready = message->GetSignal("dbw_ready")->GetResult();
             out.ecu_ready = message->GetSignal("ecu_ready")->GetResult();
-            out.gnss_ready = message->GetSignal("gnss_ready")->GetResult();
-            out.test_switch_enabled = message->GetSignal("test_switch_enabled")->GetResult(); 
-            out.crank_switch_enabled = message->GetSignal("crank_switch_enabled")->GetResult();
+            out.sys_state = message->GetSignal("gnss_ready")->GetResult(); // TODO: change respective signals in dbc file
+            out.safety_switch_state = message->GetSignal("test_switch_enabled")->GetResult(); 
+            out.mode_switch_state = message->GetSignal("crank_switch_enabled")->GetResult();
             out.battery_voltage = message->GetSignal("battery_voltage")->GetResult();
             pub_misc_do_->publish(out);
           }
@@ -460,28 +460,28 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             deep_orange_msgs::msg::RcToCt out;
-            out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
-            out.track_condition = message->GetSignal("DBW_track_condition")->GetResult(); 
-            // TODO: adding statements for arrays of black checkered purple flags
+            // out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
+            out.track_cond = message->GetSignal("DBW_track_condition")->GetResult(); 
+            // TODO: adding statements for arrays of black checkered purple flags trackpositions
             out.rolling_counter = message->GetSignal("DBW_RollingCounter")->GetResult();
             pub_rc_to_ct_->publish(out);
           }
         }
         break;
 
-        case ID_POS_TIME:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_POS_TIME);
-          if (msg->dlc >= message->GetDlc()) {
+        // case ID_POS_TIME:
+        // {
+        //  NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_POS_TIME);
+        //   if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg);
+        //     message->SetFrame(msg);
 
-            deep_orange_msgs::msg::PosTime out;
-            out.time_to_p1  = message->GetSignal("DBW_time_to_p1")->GetResult();
-            pub_pos_time_->publish(out);
-          }
-        }
-        break;
+        //     deep_orange_msgs::msg::PosTime out;
+        //     out.time_to_p1  = message->GetSignal("DBW_time_to_p1")->GetResult();
+        //     pub_pos_time_->publish(out);
+        //   }
+        // }
+        // break;
 
         // TODO: Add coordinates.msg, subscriber with message larger than 64 bits
 
@@ -886,16 +886,16 @@ void DbwNode::recvAcceleratorPedalCmd(
   pub_can_->publish(frame);
 }
 
-  void DbwNode::recvCtStatus(const deep_orange_msgs::msg::CtStatus::SharedPtr msg) {
+  void DbwNode::recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg) {
 
   NewEagle::DbcMessage* message = dbwDbc_.GetMessage("Akit_CT_status");
-  message->GetSignal("vehicle_id")->SetResult(msg->vehicle_id);
-  message->GetSignal("current_vehicle_speed")->SetResult(msg->current_vehicle_speed);
-  message->GetSignal("current_race_flag")->SetResult(msg->current_race_flag);
-  message->GetSignal("current_latitude")->SetResult(msg->current_latitude);
-  message->GetSignal("current_longitude")->SetResult(msg->current_longitude);
-  message->GetSignal("current_ct_state")->SetResult(msg->current_ct_state); 
-  message->GetSignal("rolling_counter")->SetResult(msg->rolling_counter);
+  message->GetSignal("vehicle_id")->SetResult(msg->track_cond_ack); // TODO: change all the signals in dbc file 
+  message->GetSignal("current_vehicle_speed")->SetResult(msg->veh_sig_ack);
+  message->GetSignal("current_race_flag")->SetResult(msg->ct_state);
+  // message->GetSignal("current_latitude")->SetResult(msg->current_latitude);
+  // message->GetSignal("current_longitude")->SetResult(msg->current_longitude);
+  // message->GetSignal("current_ct_state")->SetResult(msg->current_ct_state); 
+  // message->GetSignal("rolling_counter")->SetResult(msg->rolling_counter);
   can_msgs::msg::Frame frame = message->GetFrame();
 
   pub_can_->publish(frame);
