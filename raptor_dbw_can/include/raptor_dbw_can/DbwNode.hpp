@@ -58,11 +58,13 @@
 #include <raptor_dbw_msgs/msg/tire_pressure_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_position_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
+#include <deep_orange_msgs/msg/brake_temp_report.hpp>
 #include <deep_orange_msgs/msg/ct_report.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
 #include <deep_orange_msgs/msg/rc_to_ct.hpp>
 // #include <deep_orange_msgs/msg/pos_time.hpp>
 #include <deep_orange_msgs/msg/coordinates.hpp>
+#include <deep_orange_msgs/msg/pt_report.hpp>
 
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -94,6 +96,7 @@ public:
 
 private:
   void timerCallback();
+  void timerPtCallback();
   void recvEnable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvDisable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
@@ -105,10 +108,11 @@ private:
   void recvGearCmd(const raptor_dbw_msgs::msg::GearCmd::SharedPtr msg);
   void recvMiscCmd(const raptor_dbw_msgs::msg::MiscCmd::SharedPtr msg);
   void recvGlobalEnableCmd(const raptor_dbw_msgs::msg::GlobalEnableCmd::SharedPtr msg);
-  void recvModeRequest(const std_msgs::msg::UInt8::SharedPtr msg);
+  void recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg);
   void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
 
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr timer_pt_report_;
   bool prev_enable_;
   bool enable_;
   bool override_brake_;
@@ -129,6 +133,9 @@ private:
   bool enabled_accelerator_pedal_;
   bool enabled_steering_;
   bool gear_warned_;
+
+  deep_orange_msgs::msg::PtReport pt_report_msg;
+
   inline bool fault()
   {
     return fault_brakes_ || fault_accelerator_pedal_ || fault_steering_ || fault_steering_cal_ ||
@@ -200,8 +207,8 @@ private:
   rclcpp::Subscription<raptor_dbw_msgs::msg::GearCmd>::SharedPtr sub_gear_;
   rclcpp::Subscription<raptor_dbw_msgs::msg::MiscCmd>::SharedPtr sub_misc_;
   rclcpp::Subscription<raptor_dbw_msgs::msg::GlobalEnableCmd>::SharedPtr sub_global_enable_;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr sub_mode_request_;
-  rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr sub_ct_status_;
+  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr sub_gear_shift_cmd_;
+  rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr sub_ct_report_;
 
   // Published topics
   rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
@@ -230,6 +237,8 @@ private:
     pub_hmi_global_enable_report_;
   rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr pub_misc_do_;
   rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
+  rclcpp::Publisher<deep_orange_msgs::msg::BrakeTempReport>::SharedPtr pub_brake_temp_report_;
+  rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr pub_pt_report_;
   // rclcpp::Publisher<deep_orange_msgs::msg::PosTime>::SharedPtr pub_pos_time_;
 
   NewEagle::Dbc dbwDbc_;
