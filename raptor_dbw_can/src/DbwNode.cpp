@@ -92,6 +92,12 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   joint_state_.name[JOINT_SL] = "steer_fl";
   joint_state_.name[JOINT_SR] = "steer_fr";
 
+  // Initializing PT report 
+
+  deep_orange_msgs::msg::PtReport pt_report_msg;
+
+  
+
   // Set up Publishers
   pub_can_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 20);
   pub_brake_ = this->create_publisher<raptor_dbw_msgs::msg::BrakeReport>("brake_report", 20);
@@ -1107,6 +1113,8 @@ bool DbwNode::publishDbwEnabled()
   prev_enable_ = en;
   return change;
 }
+
+void DbwNode::timerPtCallback() {}
 
 void DbwNode::timerCallback()
 {
