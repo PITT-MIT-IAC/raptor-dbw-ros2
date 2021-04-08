@@ -270,112 +270,112 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_ACCEL_PEDAL_REPORT:
-        {
-          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_ACCEL_PEDAL_REPORT);
-          if (msg->dlc >= message->GetDlc()) {
-            message->SetFrame(msg);
+      // case ID_ACCEL_PEDAL_REPORT:
+      //   {
+      //     NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_ACCEL_PEDAL_REPORT);
+      //     if (msg->dlc >= message->GetDlc()) {
+      //       message->SetFrame(msg);
 
-            bool faultCh1 = message->GetSignal("DBW_AccelPdlFault_Ch1")->GetResult() ? true : false;
-            bool faultCh2 = message->GetSignal("DBW_AccelPdlFault_Ch2")->GetResult() ? true : false;
-            bool accelPdlSystemFault =
-              message->GetSignal("DBW_AccelPdlFault")->GetResult() ? true : false;
-            bool dbwSystemFault = accelPdlSystemFault;
+      //       bool faultCh1 = message->GetSignal("DBW_AccelPdlFault_Ch1")->GetResult() ? true : false;
+      //       bool faultCh2 = message->GetSignal("DBW_AccelPdlFault_Ch2")->GetResult() ? true : false;
+      //       bool accelPdlSystemFault =
+      //         message->GetSignal("DBW_AccelPdlFault")->GetResult() ? true : false;
+      //       bool dbwSystemFault = accelPdlSystemFault;
 
-            faultAcceleratorPedal(faultCh1 && faultCh2);
-            faultWatchdog(dbwSystemFault, accelPdlSystemFault);
+      //       faultAcceleratorPedal(faultCh1 && faultCh2);
+      //       faultWatchdog(dbwSystemFault, accelPdlSystemFault);
 
-            overrideAcceleratorPedal(message->GetSignal("DBW_AccelPdlDriverActivity")->GetResult());
+      //       overrideAcceleratorPedal(message->GetSignal("DBW_AccelPdlDriverActivity")->GetResult());
 
-            raptor_dbw_msgs::msg::AcceleratorPedalReport accelPedalReprt;
-            accelPedalReprt.header.stamp = msg->header.stamp;
-            accelPedalReprt.pedal_input =
-              message->GetSignal("DBW_AccelPdlDriverInput")->GetResult();
-            accelPedalReprt.pedal_output = message->GetSignal("DBW_AccelPdlPosnFdbck")->GetResult();
-            accelPedalReprt.enabled =
-              message->GetSignal("DBW_AccelPdlEnabled")->GetResult() ? true : false;
-            accelPedalReprt.ignore_driver =
-              message->GetSignal("DBW_AccelPdlIgnoreDriver")->GetResult() ? true : false;
-            accelPedalReprt.driver_activity =
-              message->GetSignal("DBW_AccelPdlDriverActivity")->GetResult() ? true : false;
-            accelPedalReprt.torque_actual =
-              message->GetSignal("DBW_AccelPcntTorqueActual")->GetResult();
+      //       raptor_dbw_msgs::msg::AcceleratorPedalReport accelPedalReprt;
+      //       accelPedalReprt.header.stamp = msg->header.stamp;
+      //       accelPedalReprt.pedal_input =
+      //         message->GetSignal("DBW_AccelPdlDriverInput")->GetResult();
+      //       accelPedalReprt.pedal_output = message->GetSignal("DBW_AccelPdlPosnFdbck")->GetResult();
+      //       accelPedalReprt.enabled =
+      //         message->GetSignal("DBW_AccelPdlEnabled")->GetResult() ? true : false;
+      //       accelPedalReprt.ignore_driver =
+      //         message->GetSignal("DBW_AccelPdlIgnoreDriver")->GetResult() ? true : false;
+      //       accelPedalReprt.driver_activity =
+      //         message->GetSignal("DBW_AccelPdlDriverActivity")->GetResult() ? true : false;
+      //       accelPedalReprt.torque_actual =
+      //         message->GetSignal("DBW_AccelPcntTorqueActual")->GetResult();
 
-            accelPedalReprt.control_type.value =
-              message->GetSignal("DBW_AccelCtrlType")->GetResult();
+      //       accelPedalReprt.control_type.value =
+      //         message->GetSignal("DBW_AccelCtrlType")->GetResult();
 
-            accelPedalReprt.rolling_counter =
-              message->GetSignal("DBW_AccelPdlRollingCntr")->GetResult();
+      //       accelPedalReprt.rolling_counter =
+      //         message->GetSignal("DBW_AccelPdlRollingCntr")->GetResult();
 
-            accelPedalReprt.fault_accel_pedal_system = accelPdlSystemFault;
+      //       accelPedalReprt.fault_accel_pedal_system = accelPdlSystemFault;
 
-            accelPedalReprt.fault_ch1 = faultCh1;
-            accelPedalReprt.fault_ch2 = faultCh2;
+      //       accelPedalReprt.fault_ch1 = faultCh1;
+      //       accelPedalReprt.fault_ch2 = faultCh2;
 
-            pub_accel_pedal_->publish(accelPedalReprt);
+      //       pub_accel_pedal_->publish(accelPedalReprt);
 
-            if (faultCh1 || faultCh2) {
-              // TODO(NewEagle): Add warning.
-            }
-          }
-        }
-        break;
+      //       if (faultCh1 || faultCh2) {
+      //         // TODO(NewEagle): Add warning.
+      //       }
+      //     }
+      //   }
+      //   break;
 
-      case ID_STEERING_REPORT:
-        {
-          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_STEERING_REPORT);
-          if (msg->dlc >= message->GetDlc()) {
-            message->SetFrame(msg);
+      // case ID_STEERING_REPORT:
+      //   {
+      //     NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_STEERING_REPORT);
+      //     if (msg->dlc >= message->GetDlc()) {
+      //       message->SetFrame(msg);
 
-            bool steeringSystemFault =
-              message->GetSignal("DBW_SteeringFault")->GetResult() ? true : false;
-            bool dbwSystemFault = steeringSystemFault;
+      //       bool steeringSystemFault =
+      //         message->GetSignal("DBW_SteeringFault")->GetResult() ? true : false;
+      //       bool dbwSystemFault = steeringSystemFault;
 
-            faultSteering(steeringSystemFault);
+      //       faultSteering(steeringSystemFault);
 
-            faultWatchdog(dbwSystemFault);
-            overrideSteering(
-              message->GetSignal(
-                "DBW_SteeringDriverActivity")->GetResult() ? true : false);
+      //       faultWatchdog(dbwSystemFault);
+      //       overrideSteering(
+      //         message->GetSignal(
+      //           "DBW_SteeringDriverActivity")->GetResult() ? true : false);
 
-            raptor_dbw_msgs::msg::SteeringReport steeringReport;
-            steeringReport.header.stamp = msg->header.stamp;
-            steeringReport.steering_wheel_angle =
-              message->GetSignal("DBW_SteeringWhlAngleAct")->GetResult() * (M_PI / 180);
-            steeringReport.steering_wheel_angle_cmd =
-              message->GetSignal("DBW_SteeringWhlAngleDes")->GetResult() * (M_PI / 180);
-            steeringReport.steering_wheel_torque =
-              message->GetSignal("DBW_SteeringWhlPcntTrqCmd")->GetResult() * 0.0625;
+      //       raptor_dbw_msgs::msg::SteeringReport steeringReport;
+      //       steeringReport.header.stamp = msg->header.stamp;
+      //       steeringReport.steering_wheel_angle =
+      //         message->GetSignal("DBW_SteeringWhlAngleAct")->GetResult() * (M_PI / 180);
+      //       steeringReport.steering_wheel_angle_cmd =
+      //         message->GetSignal("DBW_SteeringWhlAngleDes")->GetResult() * (M_PI / 180);
+      //       steeringReport.steering_wheel_torque =
+      //         message->GetSignal("DBW_SteeringWhlPcntTrqCmd")->GetResult() * 0.0625;
 
-            steeringReport.enabled =
-              message->GetSignal("DBW_SteeringEnabled")->GetResult() ? true : false;
-            steeringReport.driver_activity =
-              message->GetSignal("DBW_SteeringDriverActivity")->GetResult() ? true : false;
+      //       steeringReport.enabled =
+      //         message->GetSignal("DBW_SteeringEnabled")->GetResult() ? true : false;
+      //       steeringReport.driver_activity =
+      //         message->GetSignal("DBW_SteeringDriverActivity")->GetResult() ? true : false;
 
-            steeringReport.rolling_counter =
-              message->GetSignal("DBW_SteeringRollingCntr")->GetResult();
+      //       steeringReport.rolling_counter =
+      //         message->GetSignal("DBW_SteeringRollingCntr")->GetResult();
 
-            steeringReport.control_type.value =
-              message->GetSignal("DBW_SteeringCtrlType")->GetResult();
+      //       steeringReport.control_type.value =
+      //         message->GetSignal("DBW_SteeringCtrlType")->GetResult();
 
-            steeringReport.overheat_prevention_mode =
-              message->GetSignal("DBW_OverheatPreventMode")->GetResult() ? true : false;
+      //       steeringReport.overheat_prevention_mode =
+      //         message->GetSignal("DBW_OverheatPreventMode")->GetResult() ? true : false;
 
-            steeringReport.steering_overheat_warning = message->GetSignal(
-              "DBW_SteeringOverheatWarning")->GetResult() ? true : false;
+      //       steeringReport.steering_overheat_warning = message->GetSignal(
+      //         "DBW_SteeringOverheatWarning")->GetResult() ? true : false;
 
-            steeringReport.fault_steering_system = steeringSystemFault;
+      //       steeringReport.fault_steering_system = steeringSystemFault;
 
-            pub_steering_->publish(steeringReport);
+      //       pub_steering_->publish(steeringReport);
 
-            publishJointStates(msg->header.stamp, steeringReport);
+      //       publishJointStates(msg->header.stamp, steeringReport);
 
-            if (steeringSystemFault) {
-              // TODO(NewEagle): Add warning.
-            }
-          }
-        }
-        break;
+      //       if (steeringSystemFault) {
+      //         // TODO(NewEagle): Add warning.
+      //       }
+      //     }
+      //   }
+      //   break;
 
       case ID_GEAR_REPORT:
         {
@@ -404,26 +404,26 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_REPORT_WHEEL_SPEED:
-        {
-          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_REPORT_WHEEL_SPEED);
+      // case ID_REPORT_WHEEL_SPEED:
+      //   {
+      //     NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_REPORT_WHEEL_SPEED);
 
-          if (msg->dlc >= message->GetDlc()) {
-            message->SetFrame(msg);
+      //     if (msg->dlc >= message->GetDlc()) {
+      //       message->SetFrame(msg);
 
-            raptor_dbw_msgs::msg::WheelSpeedReport out;
-            out.header.stamp = msg->header.stamp;
+      //       raptor_dbw_msgs::msg::WheelSpeedReport out;
+      //       out.header.stamp = msg->header.stamp;
 
-            out.front_left = message->GetSignal("DBW_WhlSpd_FL")->GetResult();
-            out.front_right = message->GetSignal("DBW_WhlSpd_FR")->GetResult();
-            out.rear_left = message->GetSignal("DBW_WhlSpd_RL")->GetResult();
-            out.rear_right = message->GetSignal("DBW_WhlSpd_RR")->GetResult();
+      //       out.front_left = message->GetSignal("DBW_WhlSpd_FL")->GetResult();
+      //       out.front_right = message->GetSignal("DBW_WhlSpd_FR")->GetResult();
+      //       out.rear_left = message->GetSignal("DBW_WhlSpd_RL")->GetResult();
+      //       out.rear_right = message->GetSignal("DBW_WhlSpd_RR")->GetResult();
 
-            pub_wheel_speeds_->publish(out);
-            publishJointStates(msg->header.stamp, out);
-          }
-        }
-        break;
+      //       pub_wheel_speeds_->publish(out);
+      //       publishJointStates(msg->header.stamp, out);
+      //     }
+      //   }
+      //   break;
 
       case ID_REPORT_WHEEL_POSITION:
         {
@@ -440,6 +440,68 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             out.wheel_pulses_per_rev = message->GetSignal("DBW_WhlPulsesPerRev")->GetResult();
 
             pub_wheel_positions_->publish(out);
+          }
+        }
+        break;
+
+        case ID_WHEEL_SPEED_REPORT_DO:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_SPEED_REPORT_DO);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::WheelSpeedReport out;
+            out.front_left  = message->GetSignal("FL_wheel_speed")->GetResult();
+            out.front_right = message->GetSignal("FR_wheel_speed")->GetResult();
+            out.rear_left = message->GetSignal("RL_wheel_speed")->GetResult();
+            out.rear_right = message->GetSignal("RR_wheel_speed")->GetResult(); 
+            pub_wheel_speeds_->publish(out);
+          }
+        }
+        break;
+
+        case ID_BRAKE_PRESSURE_REPORT_DO:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_BRAKE_PRESSURE_REPORT_DO);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::Brake2Report out;
+            out.brake_pressure  = message->GetSignal("Front_Brake_pressure")->GetResult();
+            // out.rolling_counter = message->GetSignal("acc_pedal_rolling_counter")->GetResult(); TODO: add rear brake pressure, rolling counter
+            pub_brake_2_report_->publish(out);
+          }
+        }
+        break;
+
+        case ID_ACCELERATOR_REPORT_DO:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_ACCELERATOR_REPORT_DO);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::AcceleratorPedalReport out;
+            out.pedal_output  = message->GetSignal("acc_pedal_feedback")->GetResult();
+            out.rolling_counter = message->GetSignal("acc_pedal_rolling_counter")->GetResult(); 
+            pub_accel_pedal_->publish(out);
+          }
+        }
+        break;
+
+        case ID_STEERING_REPORT_DO:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_STEERING_REPORT_DO);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            raptor_dbw_msgs::msg::SteeringReport out;
+            out.steering_wheel_angle  = message->GetSignal("steering_wheel_angle")->GetResult();
+            out.rolling_counter = message->GetSignal("steering_wheel_rolling_counter")->GetResult(); 
+            pub_steering_->publish(out);
           }
         }
         break;
@@ -495,22 +557,6 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           }
         }
         break;
-
-        // case ID_POS_TIME:
-        // {
-        //  NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_POS_TIME);
-        //   if (msg->dlc >= message->GetDlc()) {
-
-        //     message->SetFrame(msg);
-
-        //     deep_orange_msgs::msg::PosTime out;
-        //     out.time_to_p1  = message->GetSignal("DBW_time_to_p1")->GetResult();
-        //     pub_pos_time_->publish(out);
-        //   }
-        // }
-        // break;
-
-        // TODO: Add coordinates.msg, subscriber with message larger than 64 bits
 
       case ID_REPORT_TIRE_PRESSURE:
         {
@@ -729,27 +775,27 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_BRAKE_2_REPORT:
-        {
-          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_BRAKE_2_REPORT);
+      // case ID_BRAKE_2_REPORT:
+      //   {
+      //     NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_BRAKE_2_REPORT);
 
-          if (msg->dlc >= message->GetDlc()) {
-            message->SetFrame(msg);
+      //     if (msg->dlc >= message->GetDlc()) {
+      //       message->SetFrame(msg);
 
-            raptor_dbw_msgs::msg::Brake2Report brake2Report;
-            brake2Report.header.stamp = msg->header.stamp;
+      //       raptor_dbw_msgs::msg::Brake2Report brake2Report;
+      //       brake2Report.header.stamp = msg->header.stamp;
 
-            brake2Report.brake_pressure = message->GetSignal("DBW_BrakePress_bar")->GetResult();
+      //       brake2Report.brake_pressure = message->GetSignal("DBW_BrakePress_bar")->GetResult();
 
-            brake2Report.estimated_road_slope =
-              message->GetSignal("DBW_RoadSlopeEstimate")->GetResult();
+      //       brake2Report.estimated_road_slope =
+      //         message->GetSignal("DBW_RoadSlopeEstimate")->GetResult();
 
-            brake2Report.speed_set_point = message->GetSignal("DBW_SpeedSetpt")->GetResult();
+      //       brake2Report.speed_set_point = message->GetSignal("DBW_SpeedSetpt")->GetResult();
 
-            pub_brake_2_report_->publish(brake2Report);
-          }
-        }
-        break;
+      //       pub_brake_2_report_->publish(brake2Report);
+      //     }
+      //   }
+      //   break;
 
       case ID_STEERING_2_REPORT:
         {
@@ -816,102 +862,139 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
   }
 }
 
-void DbwNode::recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg)
-{
-  NewEagle::DbcMessage * message = dbwDbc_.GetMessage("AKit_BrakeRequest");
+// void DbwNode::recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg)
+// {
+//   NewEagle::DbcMessage * message = dbwDbc_.GetMessage("AKit_BrakeRequest");
 
-  message->GetSignal("AKit_BrakePedalReq")->SetResult(0);
-  message->GetSignal("AKit_BrakeCtrlEnblReq")->SetResult(0);
-  message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(0);
-  message->GetSignal("AKit_BrakePcntTorqueReq")->SetResult(0);
-  message->GetSignal("AKit_SpeedModeDecelLim")->SetResult(0);
-  message->GetSignal("AKit_SpeedModeNegJerkLim")->SetResult(0);
+//   message->GetSignal("AKit_BrakePedalReq")->SetResult(0);
+//   message->GetSignal("AKit_BrakeCtrlEnblReq")->SetResult(0);
+//   message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(0);
+//   message->GetSignal("AKit_BrakePcntTorqueReq")->SetResult(0);
+//   message->GetSignal("AKit_SpeedModeDecelLim")->SetResult(0);
+//   message->GetSignal("AKit_SpeedModeNegJerkLim")->SetResult(0);
 
-  if (enabled()) {
-    if (msg->control_type.value == raptor_dbw_msgs::msg::ActuatorControlMode::OPEN_LOOP) {
-      message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(0);
-      message->GetSignal("AKit_BrakePedalReq")->SetResult(msg->pedal_cmd);
-    } else if (msg->control_type.value ==  // NOLINT
-      raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_ACTUATOR)
-    {
-      message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(1);
-      message->GetSignal("AKit_BrakePcntTorqueReq")->SetResult(msg->torque_cmd);
-    } else if (msg->control_type.value ==  // NOLINT
-      raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_VEHICLE)
-    {
-      message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(2);
-      message->GetSignal("AKit_SpeedModeDecelLim")->SetResult(msg->decel_limit);
-      message->GetSignal("AKit_SpeedModeNegJerkLim")->SetResult(msg->decel_negative_jerk_limit);
-    } else {
-      message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(0);
-    }
+//   if (enabled()) {
+//     if (msg->control_type.value == raptor_dbw_msgs::msg::ActuatorControlMode::OPEN_LOOP) {
+//       message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(0);
+//       message->GetSignal("AKit_BrakePedalReq")->SetResult(msg->pedal_cmd);
+//     } else if (msg->control_type.value ==  // NOLINT
+//       raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_ACTUATOR)
+//     {
+//       message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(1);
+//       message->GetSignal("AKit_BrakePcntTorqueReq")->SetResult(msg->torque_cmd);
+//     } else if (msg->control_type.value ==  // NOLINT
+//       raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_VEHICLE)
+//     {
+//       message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(2);
+//       message->GetSignal("AKit_SpeedModeDecelLim")->SetResult(msg->decel_limit);
+//       message->GetSignal("AKit_SpeedModeNegJerkLim")->SetResult(msg->decel_negative_jerk_limit);
+//     } else {
+//       message->GetSignal("AKit_BrakeCtrlReqType")->SetResult(0);
+//     }
 
-    if (msg->enable) {
-      message->GetSignal("AKit_BrakeCtrlEnblReq")->SetResult(1);
-    }
-  }
+//     if (msg->enable) {
+//       message->GetSignal("AKit_BrakeCtrlEnblReq")->SetResult(1);
+//     }
+//   }
 
-  NewEagle::DbcSignal * cnt = message->GetSignal("AKit_BrakeRollingCntr");
-  cnt->SetResult(msg->rolling_counter);
+//   NewEagle::DbcSignal * cnt = message->GetSignal("AKit_BrakeRollingCntr");
+//   cnt->SetResult(msg->rolling_counter);
 
-  can_msgs::msg::Frame frame = message->GetFrame();
+//   can_msgs::msg::Frame frame = message->GetFrame();
 
-  pub_can_->publish(frame);
-}
+//   pub_can_->publish(frame);
+// }
 
-void DbwNode::recvAcceleratorPedalCmd(
-  const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg)
-{
-  NewEagle::DbcMessage * message = dbwDbc_.GetMessage("AKit_AccelPdlRequest");
+// void DbwNode::recvAcceleratorPedalCmd(
+//   const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg)
+// {
+//   NewEagle::DbcMessage * message = dbwDbc_.GetMessage("AKit_AccelPdlRequest");
 
-  message->GetSignal("AKit_AccelPdlReq")->SetResult(0);
-  message->GetSignal("AKit_AccelPdlEnblReq")->SetResult(0);
-  message->GetSignal("Akit_AccelPdlIgnoreDriverOvrd")->SetResult(0);
-  message->GetSignal("AKit_AccelPdlRollingCntr")->SetResult(0);
-  message->GetSignal("AKit_AccelReqType")->SetResult(0);
-  message->GetSignal("AKit_AccelPcntTorqueReq")->SetResult(0);
-  message->GetSignal("AKit_AccelPdlChecksum")->SetResult(0);
-  message->GetSignal("AKit_SpeedReq")->SetResult(0);
-  message->GetSignal("AKit_SpeedModeRoadSlope")->SetResult(0);
-  message->GetSignal("AKit_SpeedModeAccelLim")->SetResult(0);
-  message->GetSignal("AKit_SpeedModePosJerkLim")->SetResult(0);
+//   message->GetSignal("AKit_AccelPdlReq")->SetResult(0);
+//   message->GetSignal("AKit_AccelPdlEnblReq")->SetResult(0);
+//   message->GetSignal("Akit_AccelPdlIgnoreDriverOvrd")->SetResult(0);
+//   message->GetSignal("AKit_AccelPdlRollingCntr")->SetResult(0);
+//   message->GetSignal("AKit_AccelReqType")->SetResult(0);
+//   message->GetSignal("AKit_AccelPcntTorqueReq")->SetResult(0);
+//   message->GetSignal("AKit_AccelPdlChecksum")->SetResult(0);
+//   message->GetSignal("AKit_SpeedReq")->SetResult(0);
+//   message->GetSignal("AKit_SpeedModeRoadSlope")->SetResult(0);
+//   message->GetSignal("AKit_SpeedModeAccelLim")->SetResult(0);
+//   message->GetSignal("AKit_SpeedModePosJerkLim")->SetResult(0);
 
-  if (enabled()) {
-    if (msg->control_type.value == raptor_dbw_msgs::msg::ActuatorControlMode::OPEN_LOOP) {
-      message->GetSignal("AKit_AccelReqType")->SetResult(0);
-      message->GetSignal("AKit_AccelPdlReq")->SetResult(msg->pedal_cmd);
-    } else if (msg->control_type.value ==  // NOLINT
-      raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_ACTUATOR)
-    {
-      message->GetSignal("AKit_AccelReqType")->SetResult(1);
-      message->GetSignal("AKit_AccelPcntTorqueReq")->SetResult(msg->torque_cmd);
-    } else if (msg->control_type.value ==  // NOLINT
-      raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_VEHICLE)
-    {
-      message->GetSignal("AKit_AccelReqType")->SetResult(2);
-      message->GetSignal("AKit_SpeedReq")->SetResult(msg->speed_cmd);
-      message->GetSignal("AKit_SpeedModeRoadSlope")->SetResult(msg->road_slope);
-      message->GetSignal("AKit_SpeedModeAccelLim")->SetResult(msg->accel_limit);
-      message->GetSignal("AKit_SpeedModePosJerkLim")->SetResult(msg->accel_positive_jerk_limit);
-    } else {
-      message->GetSignal("AKit_AccelReqType")->SetResult(0);
-    }
+//   if (enabled()) {
+//     if (msg->control_type.value == raptor_dbw_msgs::msg::ActuatorControlMode::OPEN_LOOP) {
+//       message->GetSignal("AKit_AccelReqType")->SetResult(0);
+//       message->GetSignal("AKit_AccelPdlReq")->SetResult(msg->pedal_cmd);
+//     } else if (msg->control_type.value ==  // NOLINT
+//       raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_ACTUATOR)
+//     {
+//       message->GetSignal("AKit_AccelReqType")->SetResult(1);
+//       message->GetSignal("AKit_AccelPcntTorqueReq")->SetResult(msg->torque_cmd);
+//     } else if (msg->control_type.value ==  // NOLINT
+//       raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_VEHICLE)
+//     {
+//       message->GetSignal("AKit_AccelReqType")->SetResult(2);
+//       message->GetSignal("AKit_SpeedReq")->SetResult(msg->speed_cmd);
+//       message->GetSignal("AKit_SpeedModeRoadSlope")->SetResult(msg->road_slope);
+//       message->GetSignal("AKit_SpeedModeAccelLim")->SetResult(msg->accel_limit);
+//       message->GetSignal("AKit_SpeedModePosJerkLim")->SetResult(msg->accel_positive_jerk_limit);
+//     } else {
+//       message->GetSignal("AKit_AccelReqType")->SetResult(0);
+//     }
 
-    if (msg->enable) {
-      message->GetSignal("AKit_AccelPdlEnblReq")->SetResult(1);
-    }
-  }
+//     if (msg->enable) {
+//       message->GetSignal("AKit_AccelPdlEnblReq")->SetResult(1);
+//     }
+//   }
 
-  NewEagle::DbcSignal * cnt = message->GetSignal("AKit_AccelPdlRollingCntr");
-  cnt->SetResult(msg->rolling_counter);
+//   NewEagle::DbcSignal * cnt = message->GetSignal("AKit_AccelPdlRollingCntr");
+//   cnt->SetResult(msg->rolling_counter);
   
-  if (msg->ignore) {
-    message->GetSignal("Akit_AccelPdlIgnoreDriverOvrd")->SetResult(1);
+//   if (msg->ignore) {
+//     message->GetSignal("Akit_AccelPdlIgnoreDriverOvrd")->SetResult(1);
+//   }
+
+//   can_msgs::msg::Frame frame = message->GetFrame();
+//   pub_can_->publish(frame);
+// }
+
+  void DbwNode::recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg)
+  {
+    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("brake_pressure_cmd");
+
+
+    message->GetSignal("demanded_brake_pressure")->SetResult(msg->pedal_cmd); 
+    message->GetSignal("brake_rolling_counter")->SetResult(msg->rolling_counter);
+
+    can_msgs::msg::Frame frame = message->GetFrame();
+
+    pub_can_->publish(frame);
   }
 
-  can_msgs::msg::Frame frame = message->GetFrame();
-  pub_can_->publish(frame);
-}
+  void DbwNode::recvAcceleratorPedalCmd(const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg)
+  {
+    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("accelerator_cmd");
+
+
+    message->GetSignal("acc_pedal_cmd")->SetResult(msg->pedal_cmd);
+    message->GetSignal("acc_rolling_counter")->SetResult(msg->rolling_counter);
+ 
+    can_msgs::msg::Frame frame = message->GetFrame();
+    pub_can_->publish(frame);
+  }
+
+  void DbwNode::recvSteeringCmd(const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg)
+  {
+    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("steering_cmd");
+
+    message->GetSignal("steering_angle_cmd")->SetResult(msg->angle_cmd);
+    message->GetSignal("steering_rolling_counter")->SetResult(msg->rolling_counter);
+
+    can_msgs::msg::Frame frame = message->GetFrame();
+
+    pub_can_->publish(frame);
+  }
 
   void DbwNode::recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg) {
 
@@ -935,68 +1018,68 @@ void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg) {
   }
 
 
-void DbwNode::recvSteeringCmd(const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg)
-{
-  NewEagle::DbcMessage * message = dbwDbc_.GetMessage("AKit_SteeringRequest");
+// void DbwNode::recvSteeringCmd(const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg)
+// {
+//   NewEagle::DbcMessage * message = dbwDbc_.GetMessage("AKit_SteeringRequest");
 
-  message->GetSignal("AKit_SteeringWhlAngleReq")->SetResult(0);
-  message->GetSignal("AKit_SteeringWhlAngleVelocityLim")->SetResult(0);
-  message->GetSignal("AKit_SteerCtrlEnblReq")->SetResult(0);
-  message->GetSignal("AKit_SteeringWhlIgnoreDriverOvrd")->SetResult(0);
-  message->GetSignal("AKit_SteeringWhlPcntTrqReq")->SetResult(0);
-  message->GetSignal("AKit_SteeringReqType")->SetResult(0);
-  message->GetSignal("AKit_SteeringVehCurvatureReq")->SetResult(0);
-  message->GetSignal("AKit_SteeringChecksum")->SetResult(0);
+//   message->GetSignal("AKit_SteeringWhlAngleReq")->SetResult(0);
+//   message->GetSignal("AKit_SteeringWhlAngleVelocityLim")->SetResult(0);
+//   message->GetSignal("AKit_SteerCtrlEnblReq")->SetResult(0);
+//   message->GetSignal("AKit_SteeringWhlIgnoreDriverOvrd")->SetResult(0);
+//   message->GetSignal("AKit_SteeringWhlPcntTrqReq")->SetResult(0);
+//   message->GetSignal("AKit_SteeringReqType")->SetResult(0);
+//   message->GetSignal("AKit_SteeringVehCurvatureReq")->SetResult(0);
+//   message->GetSignal("AKit_SteeringChecksum")->SetResult(0);
 
-  if (enabled()) {
-    if (msg->control_type.value == raptor_dbw_msgs::msg::ActuatorControlMode::OPEN_LOOP) {
-      message->GetSignal("AKit_SteeringReqType")->SetResult(0);
-      message->GetSignal("AKit_SteeringWhlPcntTrqReq")->SetResult(msg->torque_cmd);
-    } else if (msg->control_type.value ==  // NOLINT
-      raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_ACTUATOR)
-    {
-      message->GetSignal("AKit_SteeringReqType")->SetResult(1);
-      double scmd =
-        std::max(
-        -470.0F,
-        std::min(
-          470.0F, static_cast<float>(
-            msg->angle_cmd * (180.0F / M_PI * 1.0F))));
-      message->GetSignal("AKit_SteeringWhlAngleReq")->SetResult(scmd);
-    } else if (msg->control_type.value ==  // NOLINT
-      raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_VEHICLE)
-    {
-      message->GetSignal("AKit_SteeringReqType")->SetResult(2);
-      message->GetSignal("AKit_SteeringVehCurvatureReq")->SetResult(msg->vehicle_curvature_cmd);
-    } else {
-      message->GetSignal("AKit_SteeringReqType")->SetResult(0);
-    }
+//   if (enabled()) {
+//     if (msg->control_type.value == raptor_dbw_msgs::msg::ActuatorControlMode::OPEN_LOOP) {
+//       message->GetSignal("AKit_SteeringReqType")->SetResult(0);
+//       message->GetSignal("AKit_SteeringWhlPcntTrqReq")->SetResult(msg->torque_cmd);
+//     } else if (msg->control_type.value ==  // NOLINT
+//       raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_ACTUATOR)
+//     {
+//       message->GetSignal("AKit_SteeringReqType")->SetResult(1);
+//       double scmd =
+//         std::max(
+//         -470.0F,
+//         std::min(
+//           470.0F, static_cast<float>(
+//             msg->angle_cmd * (180.0F / M_PI * 1.0F))));
+//       message->GetSignal("AKit_SteeringWhlAngleReq")->SetResult(scmd);
+//     } else if (msg->control_type.value ==  // NOLINT
+//       raptor_dbw_msgs::msg::ActuatorControlMode::CLOSED_LOOP_VEHICLE)
+//     {
+//       message->GetSignal("AKit_SteeringReqType")->SetResult(2);
+//       message->GetSignal("AKit_SteeringVehCurvatureReq")->SetResult(msg->vehicle_curvature_cmd);
+//     } else {
+//       message->GetSignal("AKit_SteeringReqType")->SetResult(0);
+//     }
 
-    if (fabsf(msg->angle_velocity) > 0) {
-      uint16_t vcmd =
-        std::max(
-        1.0F,
-        std::min(
-          254.0F, static_cast<float>(
-            std::roundf(std::fabs(msg->angle_velocity) * 180.0F / M_PI / 2.0F))));
+//     if (fabsf(msg->angle_velocity) > 0) {
+//       uint16_t vcmd =
+//         std::max(
+//         1.0F,
+//         std::min(
+//           254.0F, static_cast<float>(
+//             std::roundf(std::fabs(msg->angle_velocity) * 180.0F / M_PI / 2.0F))));
 
-      message->GetSignal("AKit_SteeringWhlAngleVelocityLim")->SetResult(vcmd);
-    }
-    if (msg->enable) {
-      message->GetSignal("AKit_SteerCtrlEnblReq")->SetResult(1);
-    }
-  }
+//       message->GetSignal("AKit_SteeringWhlAngleVelocityLim")->SetResult(vcmd);
+//     }
+//     if (msg->enable) {
+//       message->GetSignal("AKit_SteerCtrlEnblReq")->SetResult(1);
+//     }
+//   }
 
-  if (msg->ignore) {
-    message->GetSignal("AKit_SteeringWhlIgnoreDriverOvrd")->SetResult(1);
-  }
+//   if (msg->ignore) {
+//     message->GetSignal("AKit_SteeringWhlIgnoreDriverOvrd")->SetResult(1);
+//   }
 
-  message->GetSignal("AKit_SteerRollingCntr")->SetResult(msg->rolling_counter);
+//   message->GetSignal("AKit_SteerRollingCntr")->SetResult(msg->rolling_counter);
 
-  can_msgs::msg::Frame frame = message->GetFrame();
+//   can_msgs::msg::Frame frame = message->GetFrame();
 
-  pub_can_->publish(frame);
-}
+//   pub_can_->publish(frame);
+// }
 
 void DbwNode::recvGearCmd(const raptor_dbw_msgs::msg::GearCmd::SharedPtr msg)
 {

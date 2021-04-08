@@ -213,12 +213,12 @@ private:
   // Published topics
   rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::BrakeReport>::SharedPtr pub_brake_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr pub_accel_pedal_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr pub_steering_;
+  rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr pub_accel_pedal_; // acc pedal report do
+  rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr pub_steering_; //steering report do
   rclcpp::Publisher<raptor_dbw_msgs::msg::GearReport>::SharedPtr pub_gear_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::MiscReport>::SharedPtr pub_misc_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr pub_wheel_speeds_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::WheelPositionReport>::SharedPtr pub_wheel_positions_;
+  rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr pub_wheel_speeds_; // wheelspeedreport do
+  rclcpp::Publisher<raptor_dbw_msgs::msg::WheelPositionReport>::SharedPtr pub_wheel_positions_; 
   rclcpp::Publisher<raptor_dbw_msgs::msg::TirePressureReport>::SharedPtr pub_tire_pressure_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::SurroundReport>::SharedPtr pub_surround_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_imu_;
@@ -230,7 +230,7 @@ private:
   rclcpp::Publisher<raptor_dbw_msgs::msg::LowVoltageSystemReport>::SharedPtr
     pub_low_voltage_system_;
 
-  rclcpp::Publisher<raptor_dbw_msgs::msg::Brake2Report>::SharedPtr pub_brake_2_report_;
+  rclcpp::Publisher<raptor_dbw_msgs::msg::Brake2Report>::SharedPtr pub_brake_2_report_; // brake report do
   rclcpp::Publisher<raptor_dbw_msgs::msg::Steering2Report>::SharedPtr pub_steering_2_report_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::FaultActionsReport>::SharedPtr pub_fault_actions_report_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::HmiGlobalEnableReport>::SharedPtr
