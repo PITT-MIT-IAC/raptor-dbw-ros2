@@ -82,6 +82,12 @@ enum
   ID_RECOMMEND_LONG_ACC         = 0x0519,
   ID_MISC_REPORT_DO             = 0x051A,
   ID_RC_TO_CT                   = 0x051B,
+  ID_TIRE_TEMP_PRES_FL          = 0x051C,
+  ID_TIRE_TEMP_PRES_FR          = 0x051D,
+  ID_TIRE_TEMP_PRES_RL          = 0x051E,
+  ID_TIRE_TEMP_PRES_RR          = 0x051F,
+  ID_WHEEL_STRAIN_GAUGE         = 0x0520,
+  ID_WHEEL_POTENTIOMETER        = 0x0521,
   ID_POS_TIME                   = 0x0517,
 };
 

@@ -65,6 +65,7 @@
 // #include <deep_orange_msgs/msg/pos_time.hpp>
 #include <deep_orange_msgs/msg/coordinates.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
+#include <deep_orange_msgs/msg/tire_report.hpp>
 
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -96,7 +97,7 @@ public:
 
 private:
   void timerCallback();
-  void timerPtCallback();
+  void timerTireCallback();
   void recvEnable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvDisable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
@@ -112,7 +113,7 @@ private:
   void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
 
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::TimerBase::SharedPtr timer_pt_report_;
+  rclcpp::TimerBase::SharedPtr timer_tire_report_;
   bool prev_enable_;
   bool enable_;
   bool override_brake_;
@@ -135,6 +136,7 @@ private:
   bool gear_warned_;
 
   deep_orange_msgs::msg::PtReport pt_report_msg;
+  deep_orange_msgs::msg::TireReport tire_report_msg;
 
   inline bool fault()
   {
@@ -238,7 +240,7 @@ private:
   rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr pub_misc_do_;
   rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
   rclcpp::Publisher<deep_orange_msgs::msg::BrakeTempReport>::SharedPtr pub_brake_temp_report_;
-  rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr pub_pt_report_;
+  rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr pub_tire_report_;
   // rclcpp::Publisher<deep_orange_msgs::msg::PosTime>::SharedPtr pub_pos_time_;
 
   NewEagle::Dbc dbwDbc_;
