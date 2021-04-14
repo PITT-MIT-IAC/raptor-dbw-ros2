@@ -19,10 +19,13 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+
 ament_auto_add_executable(${PROJECT_NAME}_node
   src/node.cpp
   src/DbwNode.cpp
 )
+
+ament_target_dependencies(raptor_dbw_can_node autoware_auto_msgs)
 
 target_compile_options(${PROJECT_NAME}_node PRIVATE -Wno-unused-function)
 

@@ -141,6 +141,11 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 10);
   pub_brake_temp_report_ = this->create_publisher<deep_orange_msgs::msg::BrakeTempReport>("brake_temp_report", 10);
   pub_tire_report_ = this->create_publisher<deep_orange_msgs::msg::TireReport>("tire_report", 10);
+
+  // autoware auto msg
+
+  pub_kinematic_state_ = this->create_publisher<autoware_auto_msgs::msg::VehicleKinematicState>("kinematic_state", 10);
+
   // pub_pos_time_ = this->create_publisher<deep_orange_msgs::msg::PosTime>("pos_time", 2);
   publishDbwEnabled();
 
@@ -568,6 +573,26 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             // TODO: adding statements for arrays of black checkered purple flags trackpositions
             out.rolling_counter = message->GetSignal("rolling_counter")->GetResult();
             pub_rc_to_ct_->publish(out);
+          }
+        }
+        break;
+
+      case ID_KINEMATIC_STATE:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_KINEMATIC_STATE);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            autoware_auto_msgs::msg::VehicleKinematicState out;
+            out.state.x = 0.0F;
+            out.state.y = 0.0F;
+            out.state.heading.real = std::cos(/*yaw*/ 0.0F / 2.0F);
+            out.state.heading.imag = std::sin(/*yaw*/ 0.0F / 2.0F);
+            // const float32_t beta = std::atan2(m_rear_axle_to_cog * std::tan(delta), wheelbase);
+            //m_vehicle_kinematic_state.state.heading_rate_rps = std::cos(beta) * std::tan(delta) / wheelbase;
+
+            pub_kinematic_state_->publish(out);
           }
         }
         break;

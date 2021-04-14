@@ -88,7 +88,7 @@ enum
   ID_TIRE_TEMP_PRES_RR          = 0x051F,
   ID_WHEEL_STRAIN_GAUGE         = 0x0520,
   ID_WHEEL_POTENTIOMETER        = 0x0521,
-  ID_POS_TIME                   = 0x0517,
+  ID_KINEMATIC_STATE            = 0x0522,
 };
 
 }  // namespace raptor_dbw_can

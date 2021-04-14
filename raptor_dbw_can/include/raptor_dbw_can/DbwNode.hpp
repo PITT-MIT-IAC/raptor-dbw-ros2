@@ -67,6 +67,12 @@
 #include <deep_orange_msgs/msg/pt_report.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
 
+
+// temp stuff
+#include <autoware_auto_msgs/msg/trajectory_point.hpp>
+#include <autoware_auto_msgs/msg/vehicle_control_command.hpp>
+#include <autoware_auto_msgs/msg/vehicle_kinematic_state.hpp>
+
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -241,6 +247,8 @@ private:
   rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
   rclcpp::Publisher<deep_orange_msgs::msg::BrakeTempReport>::SharedPtr pub_brake_temp_report_;
   rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr pub_tire_report_;
+
+  rclcpp::Publisher<autoware_auto_msgs::msg::VehicleKinematicState>::SharedPtr pub_kinematic_state_;
   // rclcpp::Publisher<deep_orange_msgs::msg::PosTime>::SharedPtr pub_pos_time_;
 
   NewEagle::Dbc dbwDbc_;
