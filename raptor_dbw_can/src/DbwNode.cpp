@@ -565,7 +565,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
             deep_orange_msgs::msg::MiscReport out;
 
-            out.off_grid_power_connection  = message->GetSignal("off_grid_power_connection")->GetResult();
+            // out.off_grid_power_connection  = message->GetSignal("off_grid_power_connection")->GetResult();
             out.sys_state = message->GetSignal("sys_state")->GetResult(); 
             out.safety_switch_state = message->GetSignal("safety_switch_state")->GetResult(); 
             out.mode_switch_state = message->GetSignal("mode_switch_state")->GetResult();
@@ -586,7 +586,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             // out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
             out.track_cond = message->GetSignal("track_cond")->GetResult(); 
             // TODO: adding statements for arrays of black checkered purple flags trackpositions
-            out.rolling_counter = message->GetSignal("rolling_counter")->GetResult();
+            out.rolling_counter = message->GetSignal("rc_rolling_counter")->GetResult();
             pub_rc_to_ct_->publish(out);
           }
         }
@@ -599,15 +599,12 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
             message->SetFrame(msg);
 
-            autoware_auto_msgs::msg::VehicleKinematicState out;
-            out.state.x = message->GetSignal("pos_x")->GetResult();
-            out.state.y = message->GetSignal("pos_y")->GetResult();
+            kinematic_state_msg.state.x = message->GetSignal("pos_x")->GetResult();
+            kinematic_state_msg.state.y = message->GetSignal("pos_y")->GetResult();
             float heading = message->GetSignal("ang_heading")->GetResult();
 
-            // out.state.heading.real = std::cos(/*yaw*/ 0.0F / 2.0F);
-            // out.state.heading.imag = std::sin(/*yaw*/ 0.0F / 2.0F);
-            // const float32_t beta = std::atan2(m_rear_axle_to_cog * std::tan(delta), wheelbase);
-            //m_vehicle_kinematic_state.state.heading_rate_rps = std::cos(beta) * std::tan(delta) / wheelbase;
+            kinematic_state_msg.state.heading.real = std::cos(heading);
+            kinematic_state_msg.state.heading.imag = std::sin(heading);
 
           }
         }
@@ -620,14 +617,11 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
             message->SetFrame(msg);
 
-            autoware_auto_msgs::msg::VehicleKinematicState out;
-            out.state.longitudinal_velocity_mps = message->GetSignal("velocity_long")->GetResult();
-            out.state.lateral_velocity_mps = message->GetSignal("velocity_lat")->GetResult();
-            out.state.acceleration_mps2 = message->GetSignal("acceleration")->GetResult();
-            out.state.front_wheel_angle_rad = message->GetSignal("motor_angle")->GetResult(); // is it in radians?
-
-            // const float32_t beta = std::atan2(m_rear_axle_to_cog * std::tan(delta), wheelbase);
-            //m_vehicle_kinematic_state.state.heading_rate_rps = std::cos(beta) * std::tan(delta) / wheelbase;
+            kinematic_state_msg.state.longitudinal_velocity_mps = message->GetSignal("velocity_long")->GetResult();
+            kinematic_state_msg.state.lateral_velocity_mps = message->GetSignal("velocity_lat")->GetResult();
+            kinematic_state_msg.state.acceleration_mps2 = message->GetSignal("acceleration")->GetResult();
+            float motor_angle = message->GetSignal("motor_angle")->GetResult();
+            kinematic_state_msg.state.front_wheel_angle_rad = motor_angle/9; // road wheel angle
             
           }
         }
