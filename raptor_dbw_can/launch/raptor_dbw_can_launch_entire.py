@@ -72,8 +72,10 @@ def generate_launch_description():
         default=[ThisLaunchFileDir(), '/launch_params.yaml'])
 
     # make sure the dbc file gets installed with the launch file
+    # dbc_file_path = get_package_share_directory('raptor_dbw_can') + \
+    #     "/launch/New_Eagle_DBW_3.3.542.dbc"
     dbc_file_path = get_package_share_directory('raptor_dbw_can') + \
-        "/launch/New_Eagle_DBW_3.3.542.dbc"
+        "/launch/CAN1_VD_signals_Final.dbc"
 
     socket_can_receiver_node = LifecycleNode(
         package='ros2_socketcan',

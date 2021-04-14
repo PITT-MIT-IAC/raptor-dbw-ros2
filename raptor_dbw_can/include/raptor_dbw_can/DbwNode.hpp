@@ -104,6 +104,7 @@ public:
 private:
   void timerCallback();
   void timerTireCallback();
+  void timerKinematicStateCallback();
   void recvEnable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvDisable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
@@ -120,6 +121,10 @@ private:
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr timer_tire_report_;
+
+  // kinematic state timed publisher for HIL test
+  rclcpp::TimerBase::SharedPtr timer_kinematic_state_;
+
   bool prev_enable_;
   bool enable_;
   bool override_brake_;
@@ -143,6 +148,7 @@ private:
 
   deep_orange_msgs::msg::PtReport pt_report_msg;
   deep_orange_msgs::msg::TireReport tire_report_msg;
+  autoware_auto_msgs::msg::VehicleKinematicState kinematic_state_msg;
 
   inline bool fault()
   {
@@ -249,7 +255,7 @@ private:
   rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr pub_tire_report_;
 
   rclcpp::Publisher<autoware_auto_msgs::msg::VehicleKinematicState>::SharedPtr pub_kinematic_state_;
-  // rclcpp::Publisher<deep_orange_msgs::msg::PosTime>::SharedPtr pub_pos_time_;
+  
 
   NewEagle::Dbc dbwDbc_;
   std::string dbcFile_;

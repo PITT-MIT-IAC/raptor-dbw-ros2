@@ -95,6 +95,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   // Initializing tire report 
 
   deep_orange_msgs::msg::TireReport tire_report_msg;
+  autoware_auto_msgs::msg::VehicleKinematicState kinematic_state_msg;
 
   
 
@@ -196,6 +197,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   
   timer_tire_report_ = this->create_wall_timer(
     10ms, std::bind(&DbwNode::timerTireCallback, this));
+
+  timer_kinematic_state_ = this->create_wall_timer(
+    10ms, std::bind(&DbwNode::timerKinematicStateCallback, this));
 
 }
 
@@ -457,6 +461,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             raptor_dbw_msgs::msg::WheelSpeedReport out;
+            out.header.stamp = msg->header.stamp;
 
             float wheel_speed_FL  = message->GetSignal("wheel_speed_FL")->GetResult();
             float wheel_speed_FR = message->GetSignal("wheel_speed_FR")->GetResult();
@@ -486,6 +491,9 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             raptor_dbw_msgs::msg::Brake2Report out;
+            out.header.stamp = msg->header.stamp;
+
+
             out.front_brake_pressure  = message->GetSignal("brake_pressure_fdbk_front")->GetResult();
             out.rear_brake_pressure  = message->GetSignal("brake_pressure_fdbk_front")->GetResult();
             out.rolling_counter = message->GetSignal("brk_pressure_fdbk_counter")->GetResult();
@@ -503,6 +511,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             raptor_dbw_msgs::msg::AcceleratorPedalReport out;
+            out.header.stamp = msg->header.stamp;
+
             out.pedal_output  = message->GetSignal("acc_pedal_fdbk")->GetResult();
             out.rolling_counter = message->GetSignal("acc_pedal_fdbk_counter")->GetResult(); 
             pub_accel_pedal_->publish(out);
@@ -516,8 +526,11 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg);
+            
 
             raptor_dbw_msgs::msg::SteeringReport out;
+            out.header.stamp = msg->header.stamp;
+
             out.steering_wheel_angle  = message->GetSignal("steering_motor_ang_fdbk")->GetResult();
             out.rolling_counter = message->GetSignal("steering_motor_fdbk_counter")->GetResult(); 
             pub_steering_->publish(out);
@@ -533,6 +546,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             deep_orange_msgs::msg::BrakeTempReport out;
+
             out.fl_brake_temp  = message->GetSignal("FL_brake_temperature")->GetResult();
             out.fr_brake_temp = message->GetSignal("FR_brake_temperature")->GetResult(); 
             out.rl_brake_temp = message->GetSignal("RL_brake_temperature")->GetResult(); 
@@ -550,6 +564,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             deep_orange_msgs::msg::MiscReport out;
+
             out.off_grid_power_connection  = message->GetSignal("off_grid_power_connection")->GetResult();
             out.sys_state = message->GetSignal("sys_state")->GetResult(); 
             out.safety_switch_state = message->GetSignal("safety_switch_state")->GetResult(); 
@@ -577,22 +592,43 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_KINEMATIC_STATE:
+      case ID_POSITION_HEADING_HIL:
         {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_KINEMATIC_STATE);
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_POSITION_HEADING_HIL);
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg);
 
             autoware_auto_msgs::msg::VehicleKinematicState out;
-            out.state.x = 0.0F;
-            out.state.y = 0.0F;
-            out.state.heading.real = std::cos(/*yaw*/ 0.0F / 2.0F);
-            out.state.heading.imag = std::sin(/*yaw*/ 0.0F / 2.0F);
+            out.state.x = message->GetSignal("pos_x")->GetResult();
+            out.state.y = message->GetSignal("pos_y")->GetResult();
+            float heading = message->GetSignal("ang_heading")->GetResult();
+
+            // out.state.heading.real = std::cos(/*yaw*/ 0.0F / 2.0F);
+            // out.state.heading.imag = std::sin(/*yaw*/ 0.0F / 2.0F);
             // const float32_t beta = std::atan2(m_rear_axle_to_cog * std::tan(delta), wheelbase);
             //m_vehicle_kinematic_state.state.heading_rate_rps = std::cos(beta) * std::tan(delta) / wheelbase;
 
-            pub_kinematic_state_->publish(out);
+          }
+        }
+        break;
+
+      case ID_VEL_ACC_HIL:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_VEL_ACC_HIL);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            autoware_auto_msgs::msg::VehicleKinematicState out;
+            out.state.longitudinal_velocity_mps = message->GetSignal("velocity_long")->GetResult();
+            out.state.lateral_velocity_mps = message->GetSignal("velocity_lat")->GetResult();
+            out.state.acceleration_mps2 = message->GetSignal("acceleration")->GetResult();
+            out.state.front_wheel_angle_rad = message->GetSignal("motor_angle")->GetResult(); // is it in radians?
+
+            // const float32_t beta = std::atan2(m_rear_axle_to_cog * std::tan(delta), wheelbase);
+            //m_vehicle_kinematic_state.state.heading_rate_rps = std::cos(beta) * std::tan(delta) / wheelbase;
+            
           }
         }
         break;
@@ -1103,8 +1139,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
     NewEagle::DbcMessage * message = dbwDbc_.GetMessage("brake_pressure_cmd");
 
 
-    message->GetSignal("demanded_brake_pressure")->SetResult(msg->pedal_cmd); 
-    message->GetSignal("brake_rolling_counter")->SetResult(msg->rolling_counter);
+    message->GetSignal("brake_pressure_cmd")->SetResult(msg->pedal_cmd); 
+    message->GetSignal("brk_pressure_cmd_counter")->SetResult(msg->rolling_counter);
 
     can_msgs::msg::Frame frame = message->GetFrame();
 
@@ -1117,7 +1153,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
 
     message->GetSignal("acc_pedal_cmd")->SetResult(msg->pedal_cmd);
-    message->GetSignal("acc_rolling_counter")->SetResult(msg->rolling_counter);
+    message->GetSignal("acc_pedal_cmd_counter")->SetResult(msg->rolling_counter);
  
     can_msgs::msg::Frame frame = message->GetFrame();
     pub_can_->publish(frame);
@@ -1127,8 +1163,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
   {
     NewEagle::DbcMessage * message = dbwDbc_.GetMessage("steering_cmd");
 
-    message->GetSignal("steering_angle_cmd")->SetResult(msg->angle_cmd);
-    message->GetSignal("steering_rolling_counter")->SetResult(msg->rolling_counter);
+    message->GetSignal("steering_motor_ang_cmd")->SetResult(msg->angle_cmd);
+    message->GetSignal("steering_motor_cmd_counter")->SetResult(msg->rolling_counter);
 
     can_msgs::msg::Frame frame = message->GetFrame();
 
@@ -1141,6 +1177,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
   message->GetSignal("track_cond_ack")->SetResult(msg->track_cond_ack); 
   message->GetSignal("veh_sig_ack")->SetResult(msg->veh_sig_ack);
   message->GetSignal("ct_state")->SetResult(msg->ct_state);
+  message->GetSignal("ct_state_rolling_counter")->SetResult(msg->rolling_counter);
 
   can_msgs::msg::Frame frame = message->GetFrame();
 
@@ -1338,6 +1375,10 @@ bool DbwNode::publishDbwEnabled()
 
 void DbwNode::timerTireCallback() {
     pub_tire_report_->publish(tire_report_msg);
+}
+
+void DbwNode::timerKinematicStateCallback() {
+    pub_kinematic_state_->publish(kinematic_state_msg);
 }
 
 void DbwNode::timerCallback()
