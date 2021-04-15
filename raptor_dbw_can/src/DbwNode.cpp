@@ -603,8 +603,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             kinematic_state_msg.state.y = message->GetSignal("pos_y")->GetResult();
             float heading = message->GetSignal("ang_heading")->GetResult();
 
-            kinematic_state_msg.state.heading.real = std::cos(heading);
-            kinematic_state_msg.state.heading.imag = std::sin(heading);
+            kinematic_state_msg.state.heading.real = std::cos(heading/2);
+            kinematic_state_msg.state.heading.imag = std::sin(heading/2);
 
           }
         }
