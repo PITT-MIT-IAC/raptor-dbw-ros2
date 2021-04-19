@@ -75,7 +75,7 @@ def generate_launch_description():
     # dbc_file_path = get_package_share_directory('raptor_dbw_can') + \
     #     "/launch/New_Eagle_DBW_3.3.542.dbc"
     dbc_file_path = get_package_share_directory('raptor_dbw_can') + \
-        "/launch/CAN1_HIL_test.dbc"
+        "/launch/CAN1_HIL_test_1.dbc"
 
     socket_can_receiver_node = LifecycleNode(
         package='ros2_socketcan',
@@ -167,7 +167,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [   
-            DeclareLaunchArgument('interface', default_value='can0'),
+            DeclareLaunchArgument('interface', default_value='can1'),
             DeclareLaunchArgument('interval_sec', default_value='0.01'),
             DeclareLaunchArgument('auto_configure', default_value='true'),
             DeclareLaunchArgument('auto_activate', default_value='true'),
@@ -175,7 +175,7 @@ def generate_launch_description():
             socket_can_receiver_configure_event_handler,
             socket_can_receiver_activate_event_handler,
 
-            DeclareLaunchArgument('interface', default_value='can0'),
+            DeclareLaunchArgument('interface', default_value='can1'),
             DeclareLaunchArgument('timeout_sec', default_value='0.01'),
             DeclareLaunchArgument('auto_configure', default_value='true'),
             DeclareLaunchArgument('auto_activate', default_value='true'),

@@ -145,7 +145,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
 
   // autoware auto msg
 
-  pub_kinematic_state_ = this->create_publisher<autoware_auto_msgs::msg::VehicleKinematicState>("kinematic_state", 10);
+  pub_kinematic_state_ = this->create_publisher<autoware_auto_msgs::msg::VehicleKinematicState>("vehicle_kinematic_state", 10);
 
   // pub_pos_time_ = this->create_publisher<deep_orange_msgs::msg::PosTime>("pos_time", 2);
   publishDbwEnabled();
@@ -170,8 +170,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   sub_steering_ = this->create_subscription<raptor_dbw_msgs::msg::SteeringCmd>(
     "steering_cmd", 1, std::bind(&DbwNode::recvSteeringCmd, this, std::placeholders::_1));
 
-  sub_gear_ = this->create_subscription<raptor_dbw_msgs::msg::GearCmd>(
-    "gear_cmd", 1, std::bind(&DbwNode::recvGearCmd, this, std::placeholders::_1));
+  // sub_gear_ = this->create_subscription<raptor_dbw_msgs::msg::GearCmd>(
+  //   "gear_cmd", 1, std::bind(&DbwNode::recvGearCmd, this, std::placeholders::_1));
 
   sub_misc_ = this->create_subscription<raptor_dbw_msgs::msg::MiscCmd>(
     "misc_cmd", 1, std::bind(&DbwNode::recvMiscCmd, this, std::placeholders::_1));
@@ -180,7 +180,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
     "global_enable_cmd", 1, std::bind(&DbwNode::recvGlobalEnableCmd, this, std::placeholders::_1));
 
   sub_gear_shift_cmd_ = this->create_subscription<std_msgs::msg::UInt8>(
-      "gear_shift_cmd", 10, std::bind(&DbwNode::recvGearShiftCmd, this, std::placeholders::_1));
+      "gear_cmd", 10, std::bind(&DbwNode::recvGearShiftCmd, this, std::placeholders::_1));
 
   sub_ct_report_ = this->create_subscription<deep_orange_msgs::msg::CtReport>(
       "ct_report", 1, std::bind(&DbwNode::recvCtReport, this, std::placeholders::_1));
@@ -598,13 +598,15 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg);
-
+            kinematic_state_msg.header.stamp = msg->header.stamp;
             kinematic_state_msg.state.x = message->GetSignal("pos_x")->GetResult();
             kinematic_state_msg.state.y = message->GetSignal("pos_y")->GetResult();
+           
             float heading = message->GetSignal("ang_heading")->GetResult();
-
+ 
             kinematic_state_msg.state.heading.real = std::cos(heading/2);
             kinematic_state_msg.state.heading.imag = std::sin(heading/2);
+            
 
           }
         }
@@ -616,7 +618,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg);
-
+            kinematic_state_msg.header.stamp = msg->header.stamp;
             kinematic_state_msg.state.longitudinal_velocity_mps = message->GetSignal("velocity_long")->GetResult();
             kinematic_state_msg.state.lateral_velocity_mps = message->GetSignal("velocity_lat")->GetResult();
             kinematic_state_msg.state.acceleration_mps2 = message->GetSignal("acceleration")->GetResult();
@@ -1130,9 +1132,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
   void DbwNode::recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg)
   {
-    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("brake_pressure_cmd");
-
-
+    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("brake_pressure_cmd"); 
     message->GetSignal("brake_pressure_cmd")->SetResult(msg->pedal_cmd); 
     message->GetSignal("brk_pressure_cmd_counter")->SetResult(msg->rolling_counter);
 
@@ -1372,6 +1372,7 @@ void DbwNode::timerTireCallback() {
 }
 
 void DbwNode::timerKinematicStateCallback() {
+    kinematic_state_msg.header.frame_id = "odom";
     pub_kinematic_state_->publish(kinematic_state_msg);
 }
 
