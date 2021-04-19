@@ -531,7 +531,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             raptor_dbw_msgs::msg::SteeringReport out;
             out.header.stamp = msg->header.stamp;
 
-            out.steering_wheel_angle  = message->GetSignal("steering_motor_ang_fdbk")->GetResult();
+            out.steering_wheel_angle  = message->GetSignal("steering_motor_ang_avg_fdbk")->GetResult();
             out.rolling_counter = message->GetSignal("steering_motor_fdbk_counter")->GetResult(); 
             pub_steering_->publish(out);
           }
@@ -629,90 +629,90 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_TIRE_TEMP_PRES_FL:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_FL);
-          if (msg->dlc >= message->GetDlc()) {
+      // case ID_TIRE_TEMP_PRES_FL:
+      //   {
+      //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_FL);
+      //     if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg);
-            float tire_temp_FL_1 = message->GetSignal("tire_temp_FL_1")->GetResult();
-            float tire_temp_FL_2 = message->GetSignal("tire_temp_FL_2")->GetResult();
-            float tire_temp_FL_3 = message->GetSignal("tire_temp_FL_3")->GetResult();
-            float tire_temp_FL_4 = message->GetSignal("tire_temp_FL_4")->GetResult(); 
-            // TODO: add the post processing for tire temp
+      //       message->SetFrame(msg);
+      //       float tire_temp_FL_1 = message->GetSignal("tire_temp_FL_1")->GetResult();
+      //       float tire_temp_FL_2 = message->GetSignal("tire_temp_FL_2")->GetResult();
+      //       float tire_temp_FL_3 = message->GetSignal("tire_temp_FL_3")->GetResult();
+      //       float tire_temp_FL_4 = message->GetSignal("tire_temp_FL_4")->GetResult(); 
+      //       // TODO: add the post processing for tire temp
 
 
-            tire_report_msg.fl_tire_pressure = message->GetSignal("tire_pressure_FL")->GetResult();
+      //       tire_report_msg.fl_tire_pressure = message->GetSignal("tire_pressure_FL")->GetResult();
 
-          }
-        }
-        break;
+      //     }
+      //   }
+      //   break;
 
-      case ID_TIRE_TEMP_PRES_FR:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_FR);
-          if (msg->dlc >= message->GetDlc()) {
+      // case ID_TIRE_TEMP_PRES_FR:
+      //   {
+      //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_FR);
+      //     if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg);
-            float tire_temp_FR_1 = message->GetSignal("tire_temp_FR_1")->GetResult();
-            float tire_temp_FR_2 = message->GetSignal("tire_temp_FR_2")->GetResult();
-            float tire_temp_FR_3 = message->GetSignal("tire_temp_FR_3")->GetResult();
-            float tire_temp_FR_4 = message->GetSignal("tire_temp_FR_4")->GetResult(); 
+      //       message->SetFrame(msg);
+      //       float tire_temp_FR_1 = message->GetSignal("tire_temp_FR_1")->GetResult();
+      //       float tire_temp_FR_2 = message->GetSignal("tire_temp_FR_2")->GetResult();
+      //       float tire_temp_FR_3 = message->GetSignal("tire_temp_FR_3")->GetResult();
+      //       float tire_temp_FR_4 = message->GetSignal("tire_temp_FR_4")->GetResult(); 
 
-            tire_report_msg.fr_tire_pressure = message->GetSignal("tire_pressure_FR")->GetResult();
+      //       tire_report_msg.fr_tire_pressure = message->GetSignal("tire_pressure_FR")->GetResult();
 
-          }
-        }
-        break;
+      //     }
+      //   }
+      //   break;
 
-      case ID_TIRE_TEMP_PRES_RL:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_RL);
-          if (msg->dlc >= message->GetDlc()) {
+      // case ID_TIRE_TEMP_PRES_RL:
+      //   {
+      //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_RL);
+      //     if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg);
-            float tire_temp_RL_1 = message->GetSignal("tire_temp_RL_1")->GetResult();
-            float tire_temp_RL_2 = message->GetSignal("tire_temp_RL_2")->GetResult();
-            float tire_temp_RL_3 = message->GetSignal("tire_temp_RL_3")->GetResult();
-            float tire_temp_RL_4 = message->GetSignal("tire_temp_RL_4")->GetResult(); 
+      //       message->SetFrame(msg);
+      //       float tire_temp_RL_1 = message->GetSignal("tire_temp_RL_1")->GetResult();
+      //       float tire_temp_RL_2 = message->GetSignal("tire_temp_RL_2")->GetResult();
+      //       float tire_temp_RL_3 = message->GetSignal("tire_temp_RL_3")->GetResult();
+      //       float tire_temp_RL_4 = message->GetSignal("tire_temp_RL_4")->GetResult(); 
 
-            tire_report_msg.rl_tire_pressure = message->GetSignal("tire_pressure_RL")->GetResult();
+      //       tire_report_msg.rl_tire_pressure = message->GetSignal("tire_pressure_RL")->GetResult();
 
-          }
-        }
-        break;
+      //     }
+      //   }
+      //   break;
       
-      case ID_TIRE_TEMP_PRES_RR:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_RR);
-          if (msg->dlc >= message->GetDlc()) {
+      // case ID_TIRE_TEMP_PRES_RR:
+      //   {
+      //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_RR);
+      //     if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg);
-            float tire_temp_RR_1 = message->GetSignal("tire_temp_RR_1")->GetResult();
-            float tire_temp_RR_2 = message->GetSignal("tire_temp_RR_2")->GetResult();
-            float tire_temp_RR_3 = message->GetSignal("tire_temp_RR_3")->GetResult();
-            float tire_temp_RR_4 = message->GetSignal("tire_temp_RR_4")->GetResult(); 
+      //       message->SetFrame(msg);
+      //       float tire_temp_RR_1 = message->GetSignal("tire_temp_RR_1")->GetResult();
+      //       float tire_temp_RR_2 = message->GetSignal("tire_temp_RR_2")->GetResult();
+      //       float tire_temp_RR_3 = message->GetSignal("tire_temp_RR_3")->GetResult();
+      //       float tire_temp_RR_4 = message->GetSignal("tire_temp_RR_4")->GetResult(); 
 
-            tire_report_msg.rr_tire_pressure = message->GetSignal("tire_pressure_RR")->GetResult();
+      //       tire_report_msg.rr_tire_pressure = message->GetSignal("tire_pressure_RR")->GetResult();
 
-          }
-        }
-        break;
+      //     }
+      //   }
+      //   break;
       
-      case ID_WHEEL_STRAIN_GAUGE:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_STRAIN_GAUGE);
-          if (msg->dlc >= message->GetDlc()) {
+      // case ID_WHEEL_STRAIN_GAUGE:
+      //   {
+      //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_STRAIN_GAUGE);
+      //     if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg); 
-            tire_report_msg.fl_wheel_load = message->GetSignal("wheel_strain_gauge_FL")->GetResult();
-            tire_report_msg.fr_wheel_load = message->GetSignal("wheel_strain_gauge_FR")->GetResult();
-            tire_report_msg.rl_wheel_load = message->GetSignal("wheel_strain_gauge_RL")->GetResult();
-            tire_report_msg.rr_wheel_load = message->GetSignal("wheel_strain_gauge_RR")->GetResult();
+      //       message->SetFrame(msg); 
+      //       tire_report_msg.fl_wheel_load = message->GetSignal("wheel_strain_gauge_FL")->GetResult();
+      //       tire_report_msg.fr_wheel_load = message->GetSignal("wheel_strain_gauge_FR")->GetResult();
+      //       tire_report_msg.rl_wheel_load = message->GetSignal("wheel_strain_gauge_RL")->GetResult();
+      //       tire_report_msg.rr_wheel_load = message->GetSignal("wheel_strain_gauge_RR")->GetResult();
 
-          }
-        }
-        break; 
+      //     }
+      //   }
+      //   break; 
 
       case ID_WHEEL_POTENTIOMETER:
         {
