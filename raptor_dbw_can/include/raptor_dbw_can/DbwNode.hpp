@@ -104,6 +104,7 @@ public:
 private:
   void timerCallback();
   void timerTireCallback();
+  void timerPtCallback();
   void timerKinematicStateCallback();
   void recvEnable(const std_msgs::msg::Empty::SharedPtr msg);
   void recvDisable(const std_msgs::msg::Empty::SharedPtr msg);
@@ -121,6 +122,7 @@ private:
 
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr timer_tire_report_;
+  rclcpp::TimerBase::SharedPtr timer_pt_report_;
 
   // kinematic state timed publisher for HIL test
   rclcpp::TimerBase::SharedPtr timer_kinematic_state_;
@@ -253,6 +255,7 @@ private:
   rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
   rclcpp::Publisher<deep_orange_msgs::msg::BrakeTempReport>::SharedPtr pub_brake_temp_report_;
   rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr pub_tire_report_;
+  rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr pub_pt_report_;
 
   rclcpp::Publisher<autoware_auto_msgs::msg::VehicleKinematicState>::SharedPtr pub_kinematic_state_;
   

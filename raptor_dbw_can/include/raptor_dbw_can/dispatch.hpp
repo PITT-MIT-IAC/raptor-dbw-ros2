@@ -88,6 +88,8 @@ enum
   ID_WHEEL_POTENTIOMETER        = 0x051F,
   ID_VEL_ACC_HIL                = 0x05DD,
   ID_POSITION_HEADING_HIL       = 0x05DC,
+  ID_PT_REPORT_1                = 0x053C,
+  ID_PT_REPORT_2                = 0x053D,
 };
 
 }  // namespace raptor_dbw_can

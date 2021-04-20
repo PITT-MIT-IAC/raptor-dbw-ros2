@@ -95,6 +95,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   // Initializing tire report 
 
   deep_orange_msgs::msg::TireReport tire_report_msg;
+  deep_orange_msgs::msg::TireReport pt_report_msg;
   autoware_auto_msgs::msg::VehicleKinematicState kinematic_state_msg;
 
   
@@ -111,8 +112,6 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
     "wheel_speed_report", 20);
   pub_wheel_positions_ = this->create_publisher<raptor_dbw_msgs::msg::WheelPositionReport>(
     "wheel_position_report", 20);
-  pub_tire_pressure_ = this->create_publisher<raptor_dbw_msgs::msg::TirePressureReport>(
-    "tire_pressure_report", 20);
   pub_surround_ =
     this->create_publisher<raptor_dbw_msgs::msg::SurroundReport>("surround_report", 20);
 
@@ -142,6 +141,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 10);
   pub_brake_temp_report_ = this->create_publisher<deep_orange_msgs::msg::BrakeTempReport>("brake_temp_report", 10);
   pub_tire_report_ = this->create_publisher<deep_orange_msgs::msg::TireReport>("tire_report", 10);
+  pub_pt_report_ = this->create_publisher<deep_orange_msgs::msg::PtReport>("pt_report", 10);
 
   // autoware auto msg
 
@@ -463,20 +463,10 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             raptor_dbw_msgs::msg::WheelSpeedReport out;
             out.header.stamp = msg->header.stamp;
 
-            float wheel_speed_FL  = message->GetSignal("wheel_speed_FL")->GetResult();
-            float wheel_speed_FR = message->GetSignal("wheel_speed_FR")->GetResult();
-            float wheel_speed_RL = message->GetSignal("wheel_speed_RL")->GetResult();
-            float wheel_speed_RR = message->GetSignal("wheel_speed_RR")->GetResult();
-
-            int wheel_speed_FL_direction = message->GetSignal("wheel_speed_FL_direction")->GetResult();
-            int wheel_speed_FR_direction = message->GetSignal("wheel_speed_FR_direction")->GetResult();
-            int wheel_speed_RL_direction = message->GetSignal("wheel_speed_RL_direction")->GetResult();
-            int wheel_speed_RR_direction = message->GetSignal("wheel_speed_RR_direction")->GetResult();
-          
-            out.front_left  = wheel_speed_FL * wheel_speed_FL_direction;
-            out.front_right = wheel_speed_FR * wheel_speed_FR_direction;
-            out.rear_left =  wheel_speed_RL * wheel_speed_RL_direction;
-            out.rear_right = wheel_speed_RR * wheel_speed_RR_direction;
+            out.front_left  = message->GetSignal("wheel_speed_FL")->GetResult();
+            out.front_right = message->GetSignal("wheel_speed_FR")->GetResult();
+            out.rear_left = message->GetSignal("wheel_speed_RL")->GetResult();
+            out.rear_right = message->GetSignal("wheel_speed_RR")->GetResult();
 
             pub_wheel_speeds_->publish(out);
           }
@@ -538,24 +528,6 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      case ID_BRAKE_TEMP_REPORT:
-        {
-         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_BRAKE_TEMP_REPORT);
-          if (msg->dlc >= message->GetDlc()) {
-
-            message->SetFrame(msg);
-
-            deep_orange_msgs::msg::BrakeTempReport out;
-
-            out.fl_brake_temp  = message->GetSignal("FL_brake_temperature")->GetResult();
-            out.fr_brake_temp = message->GetSignal("FR_brake_temperature")->GetResult(); 
-            out.rl_brake_temp = message->GetSignal("RL_brake_temperature")->GetResult(); 
-            out.rr_brake_temp = message->GetSignal("RR_brake_temperature")->GetResult();
-            pub_brake_temp_report_->publish(out);
-          }
-        }
-        break;
-
       case ID_MISC_REPORT_DO:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MISC_REPORT_DO);
@@ -588,6 +560,41 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             // TODO: adding statements for arrays of black checkered purple flags trackpositions
             out.rolling_counter = message->GetSignal("rc_rolling_counter")->GetResult();
             pub_rc_to_ct_->publish(out);
+          }
+        }
+        break;
+
+      case ID_PT_REPORT_1:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_PT_REPORT_1);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+            // pt_report_msg.sys_state = message->GetSignal("engine_state")->GetResult(); 
+            // pt_report_msg.safety_switch_state = message->GetSignal("engine_run_switch")->GetResult(); 
+            // pt_report_msg.mode_switch_state = message->GetSignal("throttle_position")->GetResult();
+            pt_report_msg.current_gear = message->GetSignal("current_gear")->GetResult();
+            pt_report_msg.engine_rpm = message->GetSignal("engine_speed_rpm")->GetResult();
+            // pt_report_msg.battery_voltage = message->GetSignal("vehicle_speed_kmph")->GetResult();
+
+            
+          }
+        }
+        break;
+
+      case ID_PT_REPORT_2:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_PT_REPORT_2);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            pt_report_msg.fuel_pressure = message->GetSignal("fuel_pressure_kpa")->GetResult();
+            pt_report_msg.engine_oil_pressure = message->GetSignal("engine_oil_pressure_kpa")->GetResult();
+            pt_report_msg.engine_coolant_temperature = message->GetSignal("coolant_temperature")->GetResult();
+            pt_report_msg.transmission_oil_temperature = message->GetSignal("transmission_temperature")->GetResult();
+
+
           }
         }
         break;
@@ -629,7 +636,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
-      // case ID_TIRE_TEMP_PRES_FL:
+      // case ID_TIRE_TEMP_PRES_FL:cd
       //   {
       //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_TEMP_PRES_FL);
       //     if (msg->dlc >= message->GetDlc()) {
@@ -1369,6 +1376,10 @@ bool DbwNode::publishDbwEnabled()
 
 void DbwNode::timerTireCallback() {
     pub_tire_report_->publish(tire_report_msg);
+}
+
+void DbwNode::timerPtCallback() {
+    pub_pt_report_->publish(pt_report_msg);
 }
 
 void DbwNode::timerKinematicStateCallback() {
