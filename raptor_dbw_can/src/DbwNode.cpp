@@ -201,6 +201,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   timer_kinematic_state_ = this->create_wall_timer(
     10ms, std::bind(&DbwNode::timerKinematicStateCallback, this));
 
+  timer_pt_report_ = this->create_wall_timer(
+    10ms, std::bind(&DbwNode::timerPtCallback, this));
+
 }
 
 DbwNode::~DbwNode()
