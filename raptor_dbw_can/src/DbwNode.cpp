@@ -541,6 +541,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             deep_orange_msgs::msg::MiscReport out;
 
             // out.off_grid_power_connection  = message->GetSignal("off_grid_power_connection")->GetResult();
+            out.stamp = msg->header.stamp;
             out.sys_state = message->GetSignal("sys_state")->GetResult(); 
             out.safety_switch_state = message->GetSignal("safety_switch_state")->GetResult(); 
             out.mode_switch_state = message->GetSignal("mode_switch_state")->GetResult();
@@ -558,6 +559,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             message->SetFrame(msg);
 
             deep_orange_msgs::msg::RcToCt out;
+            out.stamp = msg->header.stamp;
             // out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
             out.track_cond = message->GetSignal("track_cond")->GetResult(); 
             // TODO: adding statements for arrays of black checkered purple flags trackpositions
@@ -730,6 +732,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg); 
+            tire_report_msg.stamp = msg->header.stamp;
             tire_report_msg.fl_damper_linear_potentiometer = message->GetSignal("wheel_potentiometer_FL")->GetResult();
             tire_report_msg.fr_damper_linear_potentiometer = message->GetSignal("wheel_potentiometer_FR")->GetResult();
             tire_report_msg.rl_damper_linear_potentiometer = message->GetSignal("wheel_potentiometer_RL")->GetResult();
