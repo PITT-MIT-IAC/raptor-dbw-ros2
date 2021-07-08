@@ -488,7 +488,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
 
             out.front_brake_pressure  = message->GetSignal("brake_pressure_fdbk_front")->GetResult();
-            out.rear_brake_pressure  = message->GetSignal("brake_pressure_fdbk_front")->GetResult();
+            out.rear_brake_pressure  = message->GetSignal("brake_pressure_fdbk_rear")->GetResult();
             out.rolling_counter = message->GetSignal("brk_pressure_fdbk_counter")->GetResult();
             
             pub_brake_2_report_->publish(out);
