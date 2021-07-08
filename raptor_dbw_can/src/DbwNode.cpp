@@ -575,6 +575,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg);
+            pt_report_msg.stamp = msg->header.stamp;
             // pt_report_msg.sys_state = message->GetSignal("engine_state")->GetResult(); 
             // pt_report_msg.safety_switch_state = message->GetSignal("engine_run_switch")->GetResult(); 
             // pt_report_msg.mode_switch_state = message->GetSignal("throttle_position")->GetResult();
