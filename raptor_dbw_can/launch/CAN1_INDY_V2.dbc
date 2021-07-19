@@ -228,7 +228,7 @@ BO_ 1303 steering_report: 3 Vector__XXX
 
 BO_ 1302 accelerator_report: 3 Vector__XXX
  SG_ acc_pedal_fdbk_counter : 16|8@1+ (1,0) [0|255] "" Vector__XXX
- SG_ acc_pedal_fdbk : 0|16@1+ (1,0) [0|65535] "%" Vector__XXX
+ SG_ acc_pedal_fdbk : 0|16@1+ (0.1,0) [0|65535] "%" Vector__XXX
 
 BO_ 1301 brake_pressure_report: 5 Vector__XXX
  SG_ brk_pressure_fdbk_counter : 32|8@1+ (1,0) [0|255] "" Vector__XXX
