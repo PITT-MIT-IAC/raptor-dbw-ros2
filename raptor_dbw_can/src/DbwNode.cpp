@@ -712,20 +712,20 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
       //   }
       //   break;
       
-      // case ID_WHEEL_STRAIN_GAUGE:
-      //   {
-      //    NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_STRAIN_GAUGE);
-      //     if (msg->dlc >= message->GetDlc()) {
+      case ID_WHEEL_STRAIN_GAUGE:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_STRAIN_GAUGE);
+          if (msg->dlc >= message->GetDlc()) {
 
-      //       message->SetFrame(msg); 
-      //       tire_report_msg.fl_wheel_load = message->GetSignal("wheel_strain_gauge_FL")->GetResult();
-      //       tire_report_msg.fr_wheel_load = message->GetSignal("wheel_strain_gauge_FR")->GetResult();
-      //       tire_report_msg.rl_wheel_load = message->GetSignal("wheel_strain_gauge_RL")->GetResult();
-      //       tire_report_msg.rr_wheel_load = message->GetSignal("wheel_strain_gauge_RR")->GetResult();
+            message->SetFrame(msg); 
+            tire_report_msg.fl_wheel_load = message->GetSignal("wheel_strain_gauge_FL")->GetResult();
+            tire_report_msg.fr_wheel_load = message->GetSignal("wheel_strain_gauge_FR")->GetResult();
+            tire_report_msg.rl_wheel_load = message->GetSignal("wheel_strain_gauge_RL")->GetResult();
+            tire_report_msg.rr_wheel_load = message->GetSignal("wheel_strain_gauge_RR")->GetResult();
 
-      //     }
-      //   }
-      //   break; 
+          }
+        }
+        break; 
 
       case ID_WHEEL_POTENTIOMETER:
         {
