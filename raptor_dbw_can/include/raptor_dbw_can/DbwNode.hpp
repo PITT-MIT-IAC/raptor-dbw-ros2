@@ -233,7 +233,7 @@ private:
   rclcpp::Publisher<raptor_dbw_msgs::msg::BrakeReport>::SharedPtr pub_brake_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr pub_accel_pedal_; // acc pedal report do
   rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr pub_steering_; //steering report do
-  rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>::SharedPtr pub_steering_extended_;
+  rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>::SharedPtr pub_steering_ext_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::GearReport>::SharedPtr pub_gear_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::MiscReport>::SharedPtr pub_misc_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr pub_wheel_speeds_; // wheelspeedreport do
