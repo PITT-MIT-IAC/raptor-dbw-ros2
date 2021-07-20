@@ -531,6 +531,23 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
+      case ID_STEERING_REPORT_EXTD:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_STEERING_REPORT_EXTD);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+            raptor_dbw_msgs::msg::SteeringExtendedReport out;
+            out.header.stamp = msg->header.stamp;
+
+            out.steering_motor_ang_1  = message->GetSignal("steering_motor_ang_1_fdbk")->GetResult();
+            out.steering_motor_ang_2  = message->GetSignal("steering_motor_ang_2_fdbk")->GetResult();
+            out.steering_motor_ang_3  = message->GetSignal("steering_motor_ang_3_fdbk")->GetResult();
+            pub_steering_->publish(out);
+          }
+        }
+        break;
+
       case ID_MISC_REPORT_DO:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MISC_REPORT_DO);
