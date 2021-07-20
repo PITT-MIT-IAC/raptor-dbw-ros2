@@ -105,8 +105,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   pub_brake_ = this->create_publisher<raptor_dbw_msgs::msg::BrakeReport>("brake_report", 20);
   pub_accel_pedal_ = this->create_publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>(
     "accelerator_pedal_report", 20);
-  pub_steering_ =
-    this->create_publisher<raptor_dbw_msgs::msg::SteeringReport>("steering_report", 20);
+  pub_steering_ = this->create_publisher<raptor_dbw_msgs::msg::SteeringReport>("steering_report", 20);
+  pub_steering_ext_ = this->create_publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>("steering_extended_report", 20);
   pub_gear_ = this->create_publisher<raptor_dbw_msgs::msg::GearReport>("gear_report", 20);
   pub_wheel_speeds_ = this->create_publisher<raptor_dbw_msgs::msg::WheelSpeedReport>(
     "wheel_speed_report", 20);
@@ -543,7 +543,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             out.steering_motor_ang_1  = message->GetSignal("steering_motor_ang_1_fdbk")->GetResult();
             out.steering_motor_ang_2  = message->GetSignal("steering_motor_ang_2_fdbk")->GetResult();
             out.steering_motor_ang_3  = message->GetSignal("steering_motor_ang_3_fdbk")->GetResult();
-            pub_steering_->publish(out);
+            pub_steering_ext_->publish(out);
           }
         }
         break;
