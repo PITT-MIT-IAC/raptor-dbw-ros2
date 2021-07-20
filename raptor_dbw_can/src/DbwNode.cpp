@@ -595,12 +595,11 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             pt_report_msg.stamp = msg->header.stamp;
             // pt_report_msg.sys_state = message->GetSignal("engine_state")->GetResult(); 
             // pt_report_msg.safety_switch_state = message->GetSignal("engine_run_switch")->GetResult(); 
-            // pt_report_msg.mode_switch_state = message->GetSignal("throttle_position")->GetResult();
+            pt_report_msg.throttle_position = message->GetSignal("throttle_position")->GetResult();
+            pt_report_msg.engine_run_switch_status = message->GetSignal("engine_run_switch")->GetResult();
             pt_report_msg.current_gear = message->GetSignal("current_gear")->GetResult();
             pt_report_msg.engine_rpm = message->GetSignal("engine_speed_rpm")->GetResult();
-            // pt_report_msg.battery_voltage = message->GetSignal("vehicle_speed_kmph")->GetResult();
-
-            
+            pt_report_msg.vehicle_speed_kmph = message->GetSignal("vehicle_speed_kmph")->GetResult();
           }
         }
         break;
@@ -616,8 +615,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             pt_report_msg.engine_oil_pressure = message->GetSignal("engine_oil_pressure_kpa")->GetResult();
             pt_report_msg.engine_coolant_temperature = message->GetSignal("coolant_temperature")->GetResult();
             pt_report_msg.transmission_oil_temperature = message->GetSignal("transmission_temperature")->GetResult();
-
-
+            pt_report_msg.transmission_oil_pressure = message->GetSignal("transmission_pressure_kPa")->GetResult();
           }
         }
         break;
