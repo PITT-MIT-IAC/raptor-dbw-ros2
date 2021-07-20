@@ -79,6 +79,7 @@ enum
   ID_ACCELERATOR_REPORT_DO      = 0x0516,
   ID_STEERING_REPORT_DO         = 0x0517,
   ID_MISC_REPORT_DO             = 0x0518,
+  ID_STEERING_REPORT_EXTD       = 0x0520
   ID_RC_TO_CT                   = 0x051B,
   // ID_TIRE_TEMP_PRES_FL          = 0x051C,
   // ID_TIRE_TEMP_PRES_FR          = 0x051D,
