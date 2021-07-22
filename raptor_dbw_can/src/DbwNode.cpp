@@ -611,8 +611,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
             message->SetFrame(msg);
 
-            pt_report_msg.fuel_pressure = message->GetSignal("fuel_pressure_kpa")->GetResult();
-            pt_report_msg.engine_oil_pressure = message->GetSignal("engine_oil_pressure_kpa")->GetResult();
+            pt_report_msg.fuel_pressure = message->GetSignal("fuel_pressure_kPa")->GetResult();
+            pt_report_msg.engine_oil_pressure = message->GetSignal("engine_oil_pressure_kPa")->GetResult();
             pt_report_msg.engine_coolant_temperature = message->GetSignal("coolant_temperature")->GetResult();
             pt_report_msg.transmission_oil_temperature = message->GetSignal("transmission_temperature")->GetResult();
             pt_report_msg.transmission_oil_pressure = message->GetSignal("transmission_pressure_kPa")->GetResult();
