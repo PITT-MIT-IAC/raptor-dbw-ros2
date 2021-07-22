@@ -54,7 +54,6 @@
 #include <raptor_dbw_msgs/msg/steering2_report.hpp>
 #include <raptor_dbw_msgs/msg/steering_cmd.hpp>
 #include <raptor_dbw_msgs/msg/steering_report.hpp>
-#include <raptor_dbw_msgs/msg/steering_report.hpp>
 #include <raptor_dbw_msgs/msg/steering_extended_report.hpp>
 #include <raptor_dbw_msgs/msg/surround_report.hpp>
 #include <raptor_dbw_msgs/msg/tire_pressure_report.hpp>
