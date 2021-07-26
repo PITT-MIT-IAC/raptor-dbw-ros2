@@ -1,7 +1,7 @@
 VERSION ""
 
 
-NS_ :
+NS_ : 
 	NS_DESC_
 	CM_
 	BA_DEF_
@@ -44,6 +44,11 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ off_grid_power_connection : 0|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ engine_speed : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ wheel_speed_FL_direction : 48|2@1- (1,0) [-1|1] "" Vector__XXX
+ SG_ motec_warning : 55|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ coolant_temperature_warning : 59|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ engine_oil_pressure_warning : 58|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ fuel_pressure_warning : 57|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ engine_speed_warning : 56|1@0+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 1312 steering_report_extd: 6 Vector__XXX
  SG_ steering_motor_ang_3_fdbk : 32|10@1- (0.5,0) [-512|511] "deg" Vector__XXX
@@ -205,7 +210,7 @@ BO_ 1310 wheel_strain_gauge: 8 Vector__XXX
  SG_ wheel_strain_gauge_RR : 48|12@1+ (10,0) [0|8190] "" Vector__XXX
  SG_ wheel_strain_gauge_RL : 32|12@1+ (10,0) [0|8190] "" Vector__XXX
  SG_ wheel_strain_gauge_FR : 16|12@1+ (10,0) [0|8190] "" Vector__XXX
- SG_ wheel_strain_gauge_FL : 0|12@1+ (10,0) [0|81900] "" Vector__XXX
+ SG_ wheel_strain_gauge_FL : 0|12@1+ (10,0) [0|8190] "" Vector__XXX
 
 BO_ 1304 misc_report: 5 Vector__XXX
  SG_ battery_voltage : 0|8@1+ (0.1,0) [0|0] "V" Vector__XXX
@@ -250,15 +255,11 @@ BO_ 1340 pt_report_1: 8 Vector__XXX
  SG_ vehicle_speed_kmph : 45|16@0+ (0.1,0) [0|6553.5] "kmph" Vector__XXX
 
 BO_ 1341 pt_report_2: 8 Vector__XXX
- SG_ fuel_pressure_kpa : 7|16@0+ (0.1,0) [0|1000] "kPa" Vector__XXX
- SG_ engine_oil_pressure_kpa : 23|16@0+ (0.1,0) [0|0] "kPa" Vector__XXX
+ SG_ fuel_pressure_kPa : 7|16@0+ (0.1,0) [0|1000] "kPa" Vector__XXX
+ SG_ engine_oil_pressure_kPa : 23|16@0+ (0.1,0) [0|0] "kPa" Vector__XXX
  SG_ coolant_temperature : 39|8@0+ (1,0) [0|255] "C" Vector__XXX
  SG_ transmission_temperature : 47|8@0+ (1,0) [0|255] "C" Vector__XXX
- SG_ motec_warning : 55|8@0+ (1,0) [0|0] "" Vector__XXX
- SG_ engine_speed_warning : 56|1@0+ (1,0) [0|0] "" Vector__XXX
- SG_ fuel_pressure_warning : 57|1@0+ (1,0) [0|0] "" Vector__XXX
- SG_ engine_oil_pressure_warning : 58|1@0+ (1,0) [0|0] "" Vector__XXX
- SG_ coolant_temperature_warning : 59|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ transmission_pressure_kPa : 55|16@0+ (1,0) [0|0] "kPa" Vector__XXX
 
 
 
@@ -316,9 +317,9 @@ CM_ SG_ 1303 steering_motor_ang_avg_fdbk "motor angle feedback in deg.
 physical_value = offset + factor * raw_value_decimal";
 CM_ BO_ 1301 "Brake pressure for front and rear wheels in kPa. ";
 CM_ SG_ 1301 brk_pressure_fdbk_counter "rolling counter for brake pressure feedback message";
-CM_ SG_ 1301 brake_pressure_fdbk_rear "Brake pressure for rear wheels in kPa.
+CM_ SG_ 1301 brake_pressure_fdbk_rear "Brake pressure for rear wheels in kPa. 
 values will be positive integer in kPa.";
-CM_ SG_ 1301 brake_pressure_fdbk_front "Brake pressure for front wheels in kPa.
+CM_ SG_ 1301 brake_pressure_fdbk_front "Brake pressure for front wheels in kPa. 
 values will be positive integer in kPa.";
 CM_ SG_ 1300 wheel_speed_RL "rear left wheel speed in kmph
 ";

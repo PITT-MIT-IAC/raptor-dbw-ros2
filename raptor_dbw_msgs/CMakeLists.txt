@@ -44,6 +44,7 @@ set(msg_files
   "msg/Steering2Report.msg"
   "msg/SteeringCmd.msg"
   "msg/SteeringReport.msg"
+  "msg/SteeringExtendedReport.msg"
   "msg/SurroundReport.msg"  
   "msg/TirePressureReport.msg"
   "msg/TurnSignal.msg"  
