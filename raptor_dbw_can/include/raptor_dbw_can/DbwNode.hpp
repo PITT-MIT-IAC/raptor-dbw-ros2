@@ -59,6 +59,8 @@
 #include <raptor_dbw_msgs/msg/tire_pressure_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_position_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
+#include <deep_orange_msgs/msg/base_to_car_summary.hpp>
+
 #include <deep_orange_msgs/msg/brake_temp_report.hpp>
 #include <deep_orange_msgs/msg/ct_report.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
@@ -229,6 +231,7 @@ private:
 
   // Published topics
   rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
+  rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr pub_flags_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::BrakeReport>::SharedPtr pub_brake_;
   rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr pub_accel_pedal_; // acc pedal report do
   rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr pub_steering_; //steering report do
