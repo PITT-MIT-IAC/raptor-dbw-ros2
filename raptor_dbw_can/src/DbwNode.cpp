@@ -41,9 +41,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
 {
   dbcFile_ = this->declare_parameter("dbw_dbc_file", "");
 
-  // Initializing tire report 
+  // Initializing tire report
   // set sizes for the arrays
-  for (int i=0;i<16;i++) 
+  for (int i=0;i<16;i++)
   {
     tire_report_msg.fl_tire_temperature.push_back(-1.0);
     tire_report_msg.fr_tire_temperature.push_back(-1.0);
@@ -59,11 +59,14 @@ DbwNode::DbwNode(const rclcpp::NodeOptions & options)
   pub_steering_ext_ = this->create_publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>("steering_extended_report", 20);
   pub_wheel_speeds_ = this->create_publisher<raptor_dbw_msgs::msg::WheelSpeedReport>("wheel_speed_report", 20);
   pub_brake_2_report_ = this->create_publisher<raptor_dbw_msgs::msg::Brake2Report>("brake_2_report", 20);
- 
+
   pub_misc_do_ = this->create_publisher<deep_orange_msgs::msg::MiscReport>("misc_report_do", 10);
   pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 10);
   pub_tire_report_ = this->create_publisher<deep_orange_msgs::msg::TireReport>("tire_report", 10);
   pub_pt_report_ = this->create_publisher<deep_orange_msgs::msg::PtReport>("pt_report", 10);
+  pub_diag_report_ = this->create_publisher<deep_orange_msgs::msg::DiagnosticReport>("diag_report", 10);
+  pub_timing_report_ = this->create_publisher<deep_orange_msgs::msg::LapTimeReport>("lap_time_report", 10);
+
 
   // Set up Subscribers
   sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
@@ -100,28 +103,51 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 {
   if (!msg->is_rtr && !msg->is_error) {
     switch (msg->id) {
+      case ID_LAP_TIME_REPORT:
+        {
+          NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_LAP_TIME_REPORT);
+          if (msg->dlc >= message->GetDlc()) {
+            message->SetFrame(msg);
+
+            deep_orange_msgs::msg::LapTimeReport out;
+            out.stamp = msg->header.stamp;
+            out.laps = message->GetSignal("laps")->GetResult();
+            out.lap_time = message->GetSignal("lap_time")->GetResult();
+            out.time_stamp = message->GetSignal("time_stamp")->GetResult();
+            pub_timing_report_->publish(out);
+
+          }
+        }
+        break;
+
       case ID_BASE_TO_CAR_SUMMARY:
         {
           NewEagle::DbcMessage * message = dbwDbc_.GetMessageById(ID_BASE_TO_CAR_SUMMARY);
           if (msg->dlc >= message->GetDlc()) {
             message->SetFrame(msg);
 
-            deep_orange_msgs::msg::BaseToCarSummary out;
+            deep_orange_msgs::msg::RcToCt out;
+            deep_orange_msgs::msg::BaseToCarSummary btcsum;
+
             out.stamp = msg->header.stamp;
-            out.base_to_car_heartbeat = message->GetSignal("base_to_car_heartbeat")->GetResult();
+            out.rolling_counter = message->GetSignal("base_to_car_heartbeat")->GetResult();
             out.track_flag = message->GetSignal("track_flag")->GetResult();
             out.veh_flag = message->GetSignal("veh_flag")->GetResult();
             out.veh_rank = message->GetSignal("veh_rank")->GetResult();
-            out.lap_status_whole = message->GetSignal("lap_status_whole")->GetResult();
-            out.lap_status_fraction = message->GetSignal("lap_status_fraction")->GetResult();
+            out.lap_count = message->GetSignal("lap_count")->GetResult();
+            out.lap_distance = message->GetSignal("lap_distance")->GetResult();
+            pub_rc_to_ct_->publish(out);
+
+            btcsum.stamp = msg->header.stamp;
+            btcsum.base_to_car_heartbeat = out.rolling_counter;
+            btcsum.track_flag = out.track_flag;
+            btcsum.veh_flag = out.veh_flag;
+            btcsum.veh_rank = out.veh_rank;
+            // TODO fix these fields
+            btcsum.lap_status_whole = out.lap_count;
+            btcsum.lap_status_fraction = out.lap_distance;
 
             pub_flags_->publish(out);
-
-            deep_orange_msgs::msg::RcToCt out2;
-            out2.stamp = msg->header.stamp;
-            out2.track_cond = message->GetSignal("track_flag")->GetResult(); 
-            out2.rolling_counter = message->GetSignal("base_to_car_heartbeat")->GetResult();
-            pub_rc_to_ct_->publish(out2);
 
           }
         }
@@ -176,7 +202,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             raptor_dbw_msgs::msg::AcceleratorPedalReport out;
             out.header.stamp = msg->header.stamp;
             out.pedal_output  = message->GetSignal("acc_pedal_fdbk")->GetResult();
-            out.rolling_counter = message->GetSignal("acc_pedal_fdbk_counter")->GetResult(); 
+            out.rolling_counter = message->GetSignal("acc_pedal_fdbk_counter")->GetResult();
             pub_accel_pedal_->publish(out);
           }
         }
@@ -188,13 +214,13 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           if (msg->dlc >= message->GetDlc()) {
 
             message->SetFrame(msg);
-            
+
 
             raptor_dbw_msgs::msg::SteeringReport out;
             out.header.stamp = msg->header.stamp;
 
             out.steering_wheel_angle  = message->GetSignal("steering_motor_ang_avg_fdbk")->GetResult();
-            out.rolling_counter = message->GetSignal("steering_motor_fdbk_counter")->GetResult(); 
+            out.rolling_counter = message->GetSignal("steering_motor_fdbk_counter")->GetResult();
             pub_steering_->publish(out);
           }
         }
@@ -226,11 +252,43 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
             deep_orange_msgs::msg::MiscReport out;
             out.stamp = msg->header.stamp;
-            out.sys_state = message->GetSignal("sys_state")->GetResult(); 
-            out.safety_switch_state = message->GetSignal("safety_switch_state")->GetResult(); 
+            out.sys_state = message->GetSignal("sys_state")->GetResult();
+            out.safety_switch_state = message->GetSignal("safety_switch_state")->GetResult();
             out.mode_switch_state = message->GetSignal("mode_switch_state")->GetResult();
             out.battery_voltage = message->GetSignal("battery_voltage")->GetResult();
             pub_misc_do_->publish(out);
+          }
+        }
+        break;
+
+      case ID_DIAG_REPORT:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_DIAG_REPORT);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            deep_orange_msgs::msg::DiagnosticReport out;
+            out.stamp = msg->header.stamp;
+            out.sd_system_warning = message->GetSignal("sd_system_warning")->GetResult();
+            out.sd_system_failure = message->GetSignal("sd_system_failure")->GetResult();
+            out.motec_warning = message->GetSignal("motec_warning")->GetResult();
+            out.sd_brake_warning1 = message->GetSignal("sd_brake_warning1")->GetResult();
+            out.sd_brake_warning2 = message->GetSignal("sd_brake_warning2")->GetResult();
+            out.sd_brake_warning3 = message->GetSignal("sd_brake_warning3")->GetResult();
+            out.sd_steer_warning1 = message->GetSignal("sd_steer_warning1")->GetResult();
+            out.sd_steer_warning2 = message->GetSignal("sd_steer_warning2")->GetResult();
+            out.sd_steer_warning3 = message->GetSignal("sd_steer_warning3")->GetResult();
+            out.est1_oos_front_brk = message->GetSignal("est1_oos_front_brk")->GetResult();
+            out.est2_oos_rear_brk = message->GetSignal("est2_oos_rear_brk")->GetResult();
+            out.est3_low_eng_speed = message->GetSignal("est3_low_eng_speed")->GetResult();
+            out.est4_sd_comms_loss = message->GetSignal("est4_sd_comms_loss")->GetResult();
+            out.est5_motec_comms_loss = message->GetSignal("est5_motec_comms_loss")->GetResult();
+            out.est6_sd_ebrake = message->GetSignal("est6_sd_ebrake")->GetResult();
+            out.adlink_hb_lost = message->GetSignal("adlink_hb_lost")->GetResult();
+            out.rc_lost = message->GetSignal("rc_lost")->GetResult();
+
+            pub_diag_report_->publish(out);
           }
         }
         break;
@@ -245,7 +303,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             deep_orange_msgs::msg::RcToCt out;
             out.stamp = msg->header.stamp;
             // out.current_position  = message->GetSignal("DBW_CurrentPosition")->GetResult();
-            out.track_cond = message->GetSignal("track_cond")->GetResult(); 
+            out.track_flag = message->GetSignal("track_cond")->GetResult();
             // TODO: adding statements for arrays of black checkered purple flags trackpositions
             out.rolling_counter = message->GetSignal("rc_rolling_counter")->GetResult();
             pub_rc_to_ct_->publish(out);
@@ -285,6 +343,18 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
         }
         break;
 
+        case ID_PT_REPORT_3:
+        {
+         NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_PT_REPORT_3);
+          if (msg->dlc >= message->GetDlc()) {
+
+            message->SetFrame(msg);
+
+            pt_report_msg.engine_oil_temperature = message->GetSignal("engine_oil_temperature")->GetResult();
+          }
+        }
+        break;
+
       case ID_TIRE_PRESSURE_FL:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_PRESSURE_FL);
@@ -320,7 +390,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           }
         }
         break;
-      
+
       case ID_TIRE_PRESSURE_RR:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_TIRE_PRESSURE_RR);
@@ -556,13 +626,13 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           }
         }
         break;
-      
+
       case ID_WHEEL_STRAIN_GAUGE:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_STRAIN_GAUGE);
           if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg); 
+            message->SetFrame(msg);
             tire_report_msg.fl_wheel_load = message->GetSignal("wheel_strain_gauge_FL")->GetResult();
             tire_report_msg.fr_wheel_load = message->GetSignal("wheel_strain_gauge_FR")->GetResult();
             tire_report_msg.rl_wheel_load = message->GetSignal("wheel_strain_gauge_RL")->GetResult();
@@ -570,14 +640,14 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
           }
         }
-        break; 
+        break;
 
       case ID_WHEEL_POTENTIOMETER:
         {
          NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_WHEEL_POTENTIOMETER);
           if (msg->dlc >= message->GetDlc()) {
 
-            message->SetFrame(msg); 
+            message->SetFrame(msg);
             tire_report_msg.stamp = msg->header.stamp;
             tire_report_msg.fl_damper_linear_potentiometer = message->GetSignal("wheel_potentiometer_FL")->GetResult();
             tire_report_msg.fr_damper_linear_potentiometer = message->GetSignal("wheel_potentiometer_FR")->GetResult();
@@ -586,15 +656,15 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
 
           }
         }
-        break;  
+        break;
     }
   }
 }
 
   void DbwNode::recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg)
   {
-    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("brake_pressure_cmd"); 
-    message->GetSignal("brake_pressure_cmd")->SetResult(msg->pedal_cmd); 
+    NewEagle::DbcMessage * message = dbwDbc_.GetMessage("brake_pressure_cmd");
+    message->GetSignal("brake_pressure_cmd")->SetResult(msg->pedal_cmd);
     message->GetSignal("brk_pressure_cmd_counter")->SetResult(msg->rolling_counter);
     can_msgs::msg::Frame frame = message->GetFrame();
     pub_can_->publish(frame);
@@ -618,11 +688,11 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
     pub_can_->publish(frame);
   }
 
-  void DbwNode::recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg) 
+  void DbwNode::recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg)
   {
 
     NewEagle::DbcMessage* message = dbwDbc_.GetMessage("ct_report");
-    message->GetSignal("track_cond_ack")->SetResult(msg->track_cond_ack); 
+    message->GetSignal("track_cond_ack")->SetResult(msg->track_cond_ack);
     message->GetSignal("veh_sig_ack")->SetResult(msg->veh_sig_ack);
     message->GetSignal("ct_state")->SetResult(msg->ct_state);
     message->GetSignal("ct_state_rolling_counter")->SetResult(msg->rolling_counter);
@@ -632,7 +702,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
     pub_can_->publish(frame);
   }
 
-void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg) 
+void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg)
 {
   NewEagle::DbcMessage* message = dbwDbc_.GetMessage("gear_shift_cmd");
   message->GetSignal("desired_gear")->SetResult(msg->data);
