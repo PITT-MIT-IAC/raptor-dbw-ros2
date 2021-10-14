@@ -147,7 +147,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
             btcsum.lap_status_whole = out.lap_count;
             btcsum.lap_status_fraction = out.lap_distance;
 
-            pub_flags_->publish(out);
+            pub_flags_->publish(btcsum);
 
           }
         }
