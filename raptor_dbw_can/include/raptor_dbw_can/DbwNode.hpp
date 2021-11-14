@@ -33,6 +33,13 @@
 
 // ROS messages
 #include <can_msgs/msg/frame.hpp>
+#include <deep_orange_msgs/msg/base_to_car_summary.hpp>
+#include <deep_orange_msgs/msg/brake_temp_report.hpp>
+#include <deep_orange_msgs/msg/ct_report.hpp>
+#include <deep_orange_msgs/msg/diagnostic_report.hpp>
+#include <deep_orange_msgs/msg/lap_time_report.hpp>
+#include <deep_orange_msgs/msg/misc_report.hpp>
+#include <deep_orange_msgs/msg/rc_to_ct.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <pdu_msgs/msg/relay_command.hpp>
 #include <pdu_msgs/msg/relay_state.hpp>
@@ -53,44 +60,32 @@
 #include <raptor_dbw_msgs/msg/misc_report.hpp>
 #include <raptor_dbw_msgs/msg/steering2_report.hpp>
 #include <raptor_dbw_msgs/msg/steering_cmd.hpp>
-#include <raptor_dbw_msgs/msg/steering_report.hpp>
 #include <raptor_dbw_msgs/msg/steering_extended_report.hpp>
+#include <raptor_dbw_msgs/msg/steering_report.hpp>
 #include <raptor_dbw_msgs/msg/surround_report.hpp>
 #include <raptor_dbw_msgs/msg/tire_pressure_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_position_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
-#include <deep_orange_msgs/msg/base_to_car_summary.hpp>
-#include <deep_orange_msgs/msg/diagnostic_report.hpp>
-#include <deep_orange_msgs/msg/lap_time_report.hpp>
-
-#include <deep_orange_msgs/msg/brake_temp_report.hpp>
-#include <deep_orange_msgs/msg/ct_report.hpp>
-#include <deep_orange_msgs/msg/misc_report.hpp>
-#include <deep_orange_msgs/msg/rc_to_ct.hpp>
 // #include <deep_orange_msgs/msg/pos_time.hpp>
 #include <deep_orange_msgs/msg/coordinates.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
 
-
 // temp stuff
 #include <autoware_auto_msgs/msg/trajectory_point.hpp>
 #include <autoware_auto_msgs/msg/vehicle_control_command.hpp>
 #include <autoware_auto_msgs/msg/vehicle_kinematic_state.hpp>
-
+#include <can_dbc_parser/Dbc.hpp>
+#include <can_dbc_parser/DbcBuilder.hpp>
+#include <can_dbc_parser/DbcMessage.hpp>
+#include <can_dbc_parser/DbcSignal.hpp>
+#include <cmath>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <std_msgs/msg/u_int8.hpp>
-
-#include <can_dbc_parser/DbcMessage.hpp>
-#include <can_dbc_parser/DbcSignal.hpp>
-#include <can_dbc_parser/Dbc.hpp>
-#include <can_dbc_parser/DbcBuilder.hpp>
-
-#include <cmath>
 #include <string>
 #include <vector>
 
@@ -98,62 +93,72 @@
 
 using namespace std::chrono_literals;  // NOLINT
 
-namespace raptor_dbw_can
-{
-class DbwNode : public rclcpp::Node
-{
-public:
-  explicit DbwNode(const rclcpp::NodeOptions & options);
-  ~DbwNode();
+namespace raptor_dbw_can {
+class DbwNode : public rclcpp::Node {
+   public:
+    explicit DbwNode(const rclcpp::NodeOptions& options);
+    ~DbwNode();
 
-private:
-  void timerTireCallback();
-  void timerPtCallback();
-  void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
-  void recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg);
-  void recvAcceleratorPedalCmd(const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg);
-  void recvSteeringCmd(const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg);
-  void recvMiscCmd(const raptor_dbw_msgs::msg::MiscCmd::SharedPtr msg);
-  void recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg);
-  void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
+   private:
+    void timerTireCallback();
+    void timerPtCallback();
+    void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
+    void recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg);
+    void recvAcceleratorPedalCmd(
+        const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg);
+    void recvSteeringCmd(
+        const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg);
+    void recvMiscCmd(const raptor_dbw_msgs::msg::MiscCmd::SharedPtr msg);
+    void recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg);
+    void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
 
-  rclcpp::TimerBase::SharedPtr timer_tire_report_;
-  rclcpp::TimerBase::SharedPtr timer_pt_report_;
+    rclcpp::TimerBase::SharedPtr timer_tire_report_;
+    rclcpp::TimerBase::SharedPtr timer_pt_report_;
 
-  deep_orange_msgs::msg::PtReport pt_report_msg;
-  deep_orange_msgs::msg::TireReport tire_report_msg;
+    deep_orange_msgs::msg::PtReport pt_report_msg;
+    deep_orange_msgs::msg::TireReport tire_report_msg;
 
- 
-  // Subscribed topics
-  rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
-  rclcpp::Subscription<raptor_dbw_msgs::msg::BrakeCmd>::SharedPtr sub_brake_;
-  rclcpp::Subscription<raptor_dbw_msgs::msg::AcceleratorPedalCmd>::SharedPtr sub_accelerator_pedal_;
-  rclcpp::Subscription<raptor_dbw_msgs::msg::SteeringCmd>::SharedPtr sub_steering_;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr sub_gear_shift_cmd_;
-  rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr sub_ct_report_;
+    // Subscribed topics
+    rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
+    rclcpp::Subscription<raptor_dbw_msgs::msg::BrakeCmd>::SharedPtr sub_brake_;
+    rclcpp::Subscription<raptor_dbw_msgs::msg::AcceleratorPedalCmd>::SharedPtr
+        sub_accelerator_pedal_;
+    rclcpp::Subscription<raptor_dbw_msgs::msg::SteeringCmd>::SharedPtr
+        sub_steering_;
+    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr sub_gear_shift_cmd_;
+    rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr
+        sub_ct_report_;
 
-  // Published topics
-  rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
-  rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr pub_flags_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::BrakeReport>::SharedPtr pub_brake_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr pub_accel_pedal_; // acc pedal report do
-  rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr pub_steering_; //steering report do
-  rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>::SharedPtr pub_steering_ext_;
-  rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr pub_wheel_speeds_; // wheelspeedreport do
- 
-  rclcpp::Publisher<raptor_dbw_msgs::msg::Brake2Report>::SharedPtr pub_brake_2_report_; // brake report do
-  rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr pub_misc_do_;
-  rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
-  rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr pub_tire_report_;
-  rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr pub_pt_report_;
-  rclcpp::Publisher<deep_orange_msgs::msg::DiagnosticReport>::SharedPtr pub_diag_report_;
-  rclcpp::Publisher<deep_orange_msgs::msg::LapTimeReport>::SharedPtr pub_timing_report_;
+    // Published topics
+    rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
+    rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr
+        pub_flags_;
+    rclcpp::Publisher<raptor_dbw_msgs::msg::BrakeReport>::SharedPtr pub_brake_;
+    rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr
+        pub_accel_pedal_;  // acc pedal report do
+    rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr
+        pub_steering_;  // steering report do
+    rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>::SharedPtr
+        pub_steering_ext_;
+    rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr
+        pub_wheel_speeds_;  // wheelspeedreport do
 
+    rclcpp::Publisher<raptor_dbw_msgs::msg::Brake2Report>::SharedPtr
+        pub_brake_2_report_;  // brake report do
+    rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr
+        pub_misc_do_;
+    rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
+    rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr
+        pub_tire_report_;
+    rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr
+        pub_pt_report_;
+    rclcpp::Publisher<deep_orange_msgs::msg::DiagnosticReport>::SharedPtr
+        pub_diag_report_;
+    rclcpp::Publisher<deep_orange_msgs::msg::LapTimeReport>::SharedPtr
+        pub_timing_report_;
 
-
-  NewEagle::Dbc dbwDbc_;
-  std::string dbcFile_;
-
+    NewEagle::Dbc dbwDbc_;
+    std::string dbcFile_;
 };
 
 }  // namespace raptor_dbw_can

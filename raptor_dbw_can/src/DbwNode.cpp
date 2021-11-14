@@ -27,11 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "raptor_dbw_can/DbwNode.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <raptor_dbw_can/DbwNode.hpp>
 #include <string>
 
 namespace raptor_dbw_can {
