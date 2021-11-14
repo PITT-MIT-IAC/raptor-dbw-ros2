@@ -29,67 +29,44 @@
 #ifndef RAPTOR_DBW_CAN__DBWNODE_HPP_
 #define RAPTOR_DBW_CAN__DBWNODE_HPP_
 
+// std libraries
+#include <cmath>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+// ros
 #include <rclcpp/rclcpp.hpp>
+
+// libraries
+#include <raptor_dbw_can/dispatch.hpp>
+#include <can_dbc_parser/Dbc.hpp>
+#include <can_dbc_parser/DbcBuilder.hpp>
+#include <can_dbc_parser/DbcMessage.hpp>
+#include <can_dbc_parser/DbcSignal.hpp>
 
 // ROS messages
 #include <can_msgs/msg/frame.hpp>
 #include <deep_orange_msgs/msg/base_to_car_summary.hpp>
-#include <deep_orange_msgs/msg/brake_temp_report.hpp>
 #include <deep_orange_msgs/msg/ct_report.hpp>
 #include <deep_orange_msgs/msg/diagnostic_report.hpp>
 #include <deep_orange_msgs/msg/lap_time_report.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
 #include <deep_orange_msgs/msg/rc_to_ct.hpp>
-#include <geometry_msgs/msg/twist_stamped.hpp>
-#include <pdu_msgs/msg/relay_command.hpp>
-#include <pdu_msgs/msg/relay_state.hpp>
-#include <raptor_dbw_msgs/msg/accelerator_pedal_cmd.hpp>
-#include <raptor_dbw_msgs/msg/accelerator_pedal_report.hpp>
-#include <raptor_dbw_msgs/msg/actuator_control_mode.hpp>
-#include <raptor_dbw_msgs/msg/brake2_report.hpp>
-#include <raptor_dbw_msgs/msg/brake_cmd.hpp>
-#include <raptor_dbw_msgs/msg/brake_report.hpp>
-#include <raptor_dbw_msgs/msg/driver_input_report.hpp>
-#include <raptor_dbw_msgs/msg/fault_actions_report.hpp>
-#include <raptor_dbw_msgs/msg/gear_cmd.hpp>
-#include <raptor_dbw_msgs/msg/gear_report.hpp>
-#include <raptor_dbw_msgs/msg/global_enable_cmd.hpp>
-#include <raptor_dbw_msgs/msg/hmi_global_enable_report.hpp>
-#include <raptor_dbw_msgs/msg/low_voltage_system_report.hpp>
-#include <raptor_dbw_msgs/msg/misc_cmd.hpp>
-#include <raptor_dbw_msgs/msg/misc_report.hpp>
-#include <raptor_dbw_msgs/msg/steering2_report.hpp>
-#include <raptor_dbw_msgs/msg/steering_cmd.hpp>
-#include <raptor_dbw_msgs/msg/steering_extended_report.hpp>
-#include <raptor_dbw_msgs/msg/steering_report.hpp>
-#include <raptor_dbw_msgs/msg/surround_report.hpp>
-#include <raptor_dbw_msgs/msg/tire_pressure_report.hpp>
-#include <raptor_dbw_msgs/msg/wheel_position_report.hpp>
-#include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
-// #include <deep_orange_msgs/msg/pos_time.hpp>
-#include <deep_orange_msgs/msg/coordinates.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
 
-// temp stuff
-#include <autoware_auto_msgs/msg/trajectory_point.hpp>
-#include <autoware_auto_msgs/msg/vehicle_control_command.hpp>
-#include <autoware_auto_msgs/msg/vehicle_kinematic_state.hpp>
-#include <can_dbc_parser/Dbc.hpp>
-#include <can_dbc_parser/DbcBuilder.hpp>
-#include <can_dbc_parser/DbcMessage.hpp>
-#include <can_dbc_parser/DbcSignal.hpp>
-#include <cmath>
-#include <sensor_msgs/msg/imu.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
-#include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/empty.hpp>
-#include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
+#include <raptor_dbw_msgs/msg/accelerator_pedal_cmd.hpp>
+#include <raptor_dbw_msgs/msg/accelerator_pedal_report.hpp>
+#include <raptor_dbw_msgs/msg/brake2_report.hpp>
+#include <raptor_dbw_msgs/msg/brake_cmd.hpp>
+#include <raptor_dbw_msgs/msg/steering_cmd.hpp>
+#include <raptor_dbw_msgs/msg/steering_extended_report.hpp>
+#include <raptor_dbw_msgs/msg/steering_report.hpp>
+#include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
 #include <std_msgs/msg/u_int8.hpp>
-#include <string>
-#include <vector>
-
-#include "raptor_dbw_can/dispatch.hpp"
 
 using namespace std::chrono_literals;  // NOLINT
 
@@ -108,7 +85,6 @@ class DbwNode : public rclcpp::Node {
         const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg);
     void recvSteeringCmd(
         const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg);
-    void recvMiscCmd(const raptor_dbw_msgs::msg::MiscCmd::SharedPtr msg);
     void recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg);
     void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
 
@@ -133,7 +109,6 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
     rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr
         pub_flags_;
-    rclcpp::Publisher<raptor_dbw_msgs::msg::BrakeReport>::SharedPtr pub_brake_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr
         pub_accel_pedal_;  // acc pedal report do
     rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr

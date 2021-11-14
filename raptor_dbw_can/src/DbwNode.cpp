@@ -27,11 +27,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <algorithm>
-#include <cmath>
-#include <iostream>
 #include <raptor_dbw_can/DbwNode.hpp>
-#include <string>
 
 namespace raptor_dbw_can {
 
@@ -187,6 +183,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
 
                     raptor_dbw_msgs::msg::WheelSpeedReport out;
                     out.header.stamp = msg->header.stamp;
+
+                    geometry_msgs::msg::TwistWithCovarianceStamped speed_msg;
 
                     out.front_left =
                         message->GetSignal("wheel_speed_FL")->GetResult();
