@@ -33,7 +33,9 @@ namespace raptor_dbw_can {
 
 DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     : Node("raptor_dbw_can_node", options) {
-    dbcFile_ = this->declare_parameter("dbw_dbc_file", "");
+    dbcFile_ = this->declare_parameter<std::string>("dbw_dbc_file", "");
+    wheel_speed_cov_ =
+        this->declare_parameter<double>("wheel_speed_covariance", 0.0004);
 
     // Initializing tire report
     // set sizes for the arrays
@@ -61,6 +63,21 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_wheel_speeds_ =
         this->create_publisher<raptor_dbw_msgs::msg::WheelSpeedReport>(
             "wheel_speed_report", 20);
+
+    // publish wheel speeds as separate topics
+    pub_front_left_wheel_speed_ =
+        this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
+            "wheel_speed/front_left", 20);
+    pub_front_right_wheel_speed_ =
+        this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
+            "wheel_speed/front_right", 20);
+    pub_back_left_wheel_speed_ =
+        this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
+            "wheel_speed/rear_left", 20);
+    pub_back_right_wheel_speed_ =
+        this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
+            "wheel_speed/rear_right", 20);
+
     pub_brake_2_report_ =
         this->create_publisher<raptor_dbw_msgs::msg::Brake2Report>(
             "brake_2_report", 20);
@@ -184,7 +201,26 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     raptor_dbw_msgs::msg::WheelSpeedReport out;
                     out.header.stamp = msg->header.stamp;
 
-                    geometry_msgs::msg::TwistWithCovarianceStamped speed_msg;
+                    // TODO fix this once we have an idea of how we want to do
+                    // this
+                    std::string frame_id = "base_link";
+                    geometry_msgs::msg::TwistWithCovarianceStamped
+                        front_left_speed_msg;
+                    geometry_msgs::msg::TwistWithCovarianceStamped
+                        front_right_speed_msg;
+                    geometry_msgs::msg::TwistWithCovarianceStamped
+                        back_left_speed_msg;
+                    geometry_msgs::msg::TwistWithCovarianceStamped
+                        back_right_speed_msg;
+
+                    front_left_speed_msg.header.frame_id = frame_id;
+                    front_left_speed_msg.header.stamp = msg->header.stamp;
+                    front_right_speed_msg.header.frame_id = frame_id;
+                    front_right_speed_msg.header.stamp = msg->header.stamp;
+                    back_left_speed_msg.header.frame_id = frame_id;
+                    back_left_speed_msg.header.stamp = msg->header.stamp;
+                    back_right_speed_msg.header.frame_id = frame_id;
+                    back_right_speed_msg.header.stamp = msg->header.stamp;
 
                     out.front_left =
                         message->GetSignal("wheel_speed_FL")->GetResult();
@@ -195,7 +231,26 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     out.rear_right =
                         message->GetSignal("wheel_speed_RR")->GetResult();
 
+                    front_left_speed_msg.twist.twist.linear.x =
+                        out.front_left * kph2ms;
+                    front_left_speed_msg.twist.covariance[0] = wheel_speed_cov_;
+                    front_right_speed_msg.twist.twist.linear.x =
+                        out.front_right * kph2ms;
+                    front_right_speed_msg.twist.covariance[0] =
+                        wheel_speed_cov_;
+                    back_left_speed_msg.twist.twist.linear.x =
+                        out.rear_left * kph2ms;
+                    back_left_speed_msg.twist.covariance[0] = wheel_speed_cov_;
+                    back_right_speed_msg.twist.twist.linear.x =
+                        out.rear_right * kph2ms;
+                    back_right_speed_msg.twist.covariance[0] = wheel_speed_cov_;
+
                     pub_wheel_speeds_->publish(out);
+                    pub_front_left_wheel_speed_->publish(front_left_speed_msg);
+                    pub_front_right_wheel_speed_->publish(
+                        front_right_speed_msg);
+                    pub_back_left_wheel_speed_->publish(back_left_speed_msg);
+                    pub_back_right_wheel_speed_->publish(back_right_speed_msg);
                 }
             } break;
 

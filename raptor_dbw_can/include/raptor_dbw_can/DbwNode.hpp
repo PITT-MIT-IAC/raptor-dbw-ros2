@@ -30,21 +30,21 @@
 #define RAPTOR_DBW_CAN__DBWNODE_HPP_
 
 // std libraries
+#include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 // ros
 #include <rclcpp/rclcpp.hpp>
 
 // libraries
-#include <raptor_dbw_can/dispatch.hpp>
 #include <can_dbc_parser/Dbc.hpp>
 #include <can_dbc_parser/DbcBuilder.hpp>
 #include <can_dbc_parser/DbcMessage.hpp>
 #include <can_dbc_parser/DbcSignal.hpp>
+#include <raptor_dbw_can/dispatch.hpp>
 
 // ROS messages
 #include <can_msgs/msg/frame.hpp>
@@ -53,10 +53,9 @@
 #include <deep_orange_msgs/msg/diagnostic_report.hpp>
 #include <deep_orange_msgs/msg/lap_time_report.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
-#include <deep_orange_msgs/msg/rc_to_ct.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
+#include <deep_orange_msgs/msg/rc_to_ct.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
-
 #include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include <raptor_dbw_msgs/msg/accelerator_pedal_cmd.hpp>
 #include <raptor_dbw_msgs/msg/accelerator_pedal_report.hpp>
@@ -117,7 +116,15 @@ class DbwNode : public rclcpp::Node {
         pub_steering_ext_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr
         pub_wheel_speeds_;  // wheelspeedreport do
-
+    // publish wheel speeds separately
+    rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
+        pub_front_left_wheel_speed_;
+    rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
+        pub_front_right_wheel_speed_;
+    rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
+        pub_back_left_wheel_speed_;
+    rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
+        pub_back_right_wheel_speed_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::Brake2Report>::SharedPtr
         pub_brake_2_report_;  // brake report do
     rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr
@@ -134,6 +141,8 @@ class DbwNode : public rclcpp::Node {
 
     NewEagle::Dbc dbwDbc_;
     std::string dbcFile_;
+    double wheel_speed_cov_;
+    static constexpr double kph2ms = 1.0 / 3.6;
 };
 
 }  // namespace raptor_dbw_can
