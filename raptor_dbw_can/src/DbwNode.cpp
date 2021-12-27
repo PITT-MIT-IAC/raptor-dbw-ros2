@@ -209,6 +209,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     btcsum.track_flag = out.track_flag;
                     btcsum.veh_flag = out.veh_flag;
                     btcsum.veh_rank = out.veh_rank;
+                    btcsum.round_target_speed = message->GetSignal("round_target_speed")->GetResult();
                     // TODO fix these fields
                     btcsum.lap_status_whole = out.lap_count;
                     btcsum.lap_status_fraction = out.lap_distance;
