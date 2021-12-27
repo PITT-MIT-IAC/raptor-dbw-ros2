@@ -284,6 +284,14 @@ BO_ 1209 rest_of_field: 8 Vector__XXX
 BO_ 1343 pt_report_3: 8 Vector__XXX
  SG_ engine_oil_temperature : 0|8@1+ (1,0) [0|0] "degC" Vector__XXX
 
+BO_ 228 mylaps_report_1: 8 Vector__XXX
+ SG_ mylaps_speed : 0|16@1+ (1,0) [0|0] "kmph" Vector__XXX
+ SG_ mylaps_heading : 16|16@1- (1,0) [0|0] "degrees" Vector__XXX
+
+BO_ 226 mylaps_report_2: 8 Vector__XXX
+ SG_ Latitude : 0|32@1- (1e-07,0) [0|0] "" Vector__XXX
+ SG_ Longitude : 32|32@1- (1e-07,0) [0|0] "" Vector__XXX
+
 
 
 CM_ SG_ 1312 steering_motor_ang_3_fdbk "motor angle feedback in deg.
@@ -398,6 +406,8 @@ CM_ SG_ 1342 adlink_hb_lost "0--HB okay;
 CM_ SG_ 1342 rc_lost "0--HB okay;
 1--HbFail;
 ";
+CM_ BO_ 228 "Speed and heading data coming off of MyLaps racelink unit. Currently at 200 ms but WIP to bump up the update rate. This is for future improvement of purple flag behaviour by providing a redundant source of speed. ";
+CM_ BO_ 226 "GPS data from MyLaps racelink unit. Currently at 200 ms but WIP to bump up the update rate.  ";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
 

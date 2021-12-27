@@ -111,6 +111,8 @@ enum
   ID_PT_REPORT_2                = 0x053D,
   ID_DIAG_REPORT                = 0x053E,
   ID_PT_REPORT_3                = 0x053F,
+  ID_MYLAPS_REPORT_1            = 0x00E4,
+  ID_MYLAPS_REPORT_2            = 0x00E2,
 };
 
 }  // namespace raptor_dbw_can

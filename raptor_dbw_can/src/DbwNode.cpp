@@ -51,6 +51,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_flags_ =
         this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
             "flag_report", 20);
+    pub_mylaps_report_ =
+        this->create_publisher<deep_orange_msgs::msg::MyLapsReport>(
+            "mylaps_report", 20);
     pub_accel_pedal_ =
         this->create_publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>(
             "accelerator_pedal_report", 20);
@@ -133,6 +136,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         10ms, std::bind(&DbwNode::timerTireCallback, this));
     timer_pt_report_ = this->create_wall_timer(
         10ms, std::bind(&DbwNode::timerPtCallback, this));
+    timer_mylaps_report_ = this->create_wall_timer(
+        200ms, std::bind(&DbwNode::timerMyLapsReportCallback, this));
 }
 
 DbwNode::~DbwNode() {}
@@ -153,6 +158,26 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     out.time_stamp =
                         message->GetSignal("time_stamp")->GetResult();
                     pub_timing_report_->publish(out);
+                }
+            } break;
+
+            case ID_MYLAPS_REPORT_1: {
+                NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MYLAPS_REPORT_1);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+                    mylaps_report_msg.stamp = msg->header.stamp;
+                    mylaps_report_msg.speed = message->GetSignal("mylaps_speed")->GetResult();
+                    mylaps_report_msg.heading = message->GetSignal("mylaps_heading")->GetResult();
+                }
+            } break;
+
+            case ID_MYLAPS_REPORT_2: {
+                NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MYLAPS_REPORT_2);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+                    mylaps_report_msg.stamp = msg->header.stamp;
+                    mylaps_report_msg.lat = message->GetSignal("Latitude")->GetResult();
+                    mylaps_report_msg.lon = message->GetSignal("Longitude")->GetResult();
                 }
             } break;
 
@@ -881,5 +906,9 @@ void DbwNode::timerTireCallback() {
 }
 
 void DbwNode::timerPtCallback() { pub_pt_report_->publish(pt_report_msg); }
+
+void DbwNode::timerMyLapsReportCallback() {
+    pub_mylaps_report_->publish(mylaps_report_msg);
+}
 
 }  // namespace raptor_dbw_can
