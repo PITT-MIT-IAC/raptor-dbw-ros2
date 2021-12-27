@@ -53,6 +53,7 @@
 #include <deep_orange_msgs/msg/diagnostic_report.hpp>
 #include <deep_orange_msgs/msg/lap_time_report.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
+#include <deep_orange_msgs/msg/my_laps_report.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
 #include <deep_orange_msgs/msg/rc_to_ct.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
@@ -78,6 +79,7 @@ class DbwNode : public rclcpp::Node {
    private:
     void timerTireCallback();
     void timerPtCallback();
+    void timerMyLapsReportCallback();
     void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
     void recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg);
     void recvAcceleratorPedalCmd(
@@ -89,9 +91,11 @@ class DbwNode : public rclcpp::Node {
 
     rclcpp::TimerBase::SharedPtr timer_tire_report_;
     rclcpp::TimerBase::SharedPtr timer_pt_report_;
+    rclcpp::TimerBase::SharedPtr timer_mylaps_report_;
 
     deep_orange_msgs::msg::PtReport pt_report_msg;
     deep_orange_msgs::msg::TireReport tire_report_msg;
+    deep_orange_msgs::msg::MyLapsReport mylaps_report_msg;
 
     // Subscribed topics
     rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
@@ -138,6 +142,8 @@ class DbwNode : public rclcpp::Node {
         pub_diag_report_;
     rclcpp::Publisher<deep_orange_msgs::msg::LapTimeReport>::SharedPtr
         pub_timing_report_;
+    rclcpp::Publisher<deep_orange_msgs::msg::MyLapsReport>::SharedPtr
+        pub_mylaps_report_;
 
     NewEagle::Dbc dbwDbc_;
     std::string dbcFile_;
