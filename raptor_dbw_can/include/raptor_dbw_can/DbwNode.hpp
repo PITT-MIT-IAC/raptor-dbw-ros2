@@ -67,6 +67,7 @@
 #include <raptor_dbw_msgs/msg/steering_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
 #include <std_msgs/msg/u_int8.hpp>
+#include <deep_orange_msgs/msg/tire_temp_report.hpp>
 
 using namespace std::chrono_literals;  // NOLINT
 
@@ -81,6 +82,7 @@ class DbwNode : public rclcpp::Node {
     void timerPtCallback();
     void timerMyLapsReportCallback();
     void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
+    void generateTireTemp();
     void recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg);
     void recvAcceleratorPedalCmd(
         const raptor_dbw_msgs::msg::AcceleratorPedalCmd::SharedPtr msg);
@@ -96,6 +98,7 @@ class DbwNode : public rclcpp::Node {
     deep_orange_msgs::msg::PtReport pt_report_msg;
     deep_orange_msgs::msg::TireReport tire_report_msg;
     deep_orange_msgs::msg::MyLapsReport mylaps_report_msg;
+    deep_orange_msgs::msg::TireTempReport tire_temp_report_msg;
 
     // Subscribed topics
     rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
@@ -144,6 +147,8 @@ class DbwNode : public rclcpp::Node {
         pub_timing_report_;
     rclcpp::Publisher<deep_orange_msgs::msg::MyLapsReport>::SharedPtr
         pub_mylaps_report_;
+    rclcpp::Publisher<deep_orange_msgs::msg::TireTempReport>::SharedPtr
+        pub_tire_temp_report_;
 
     NewEagle::Dbc dbwDbc_;
     std::string dbcFile_;

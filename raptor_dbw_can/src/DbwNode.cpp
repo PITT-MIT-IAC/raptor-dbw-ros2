@@ -100,7 +100,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_timing_report_ =
         this->create_publisher<deep_orange_msgs::msg::LapTimeReport>(
             "lap_time_report", 10);
-
+    pub_tire_temp_report_ =
+        this->create_publisher<deep_orange_msgs::msg::TireTempReport>("tire_temp_report", 10);
     // Set up Subscribers
     sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
         "can_rx", 500,
@@ -851,6 +852,59 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
     }
 }
 
+// computes values of TireTemp message for a given array of tire temperatures.
+void DbwNode::generateTireTemp() {
+    std::vector<float> fl_temps = tire_report_msg.fl_tire_temperature;
+    std::vector<float> fr_temps = tire_report_msg.fr_tire_temperature;
+    std::vector<float> rl_temps = tire_report_msg.rl_tire_temperature;
+    std::vector<float> rr_temps = tire_report_msg.rr_tire_temperature;
+
+    tire_temp_report_msg.front_left.mean = 0;
+    tire_temp_report_msg.front_right.mean = 0;
+    tire_temp_report_msg.rear_left.mean = 0;
+    tire_temp_report_msg.rear_right.mean = 0;
+
+    for (int i = 0; i < 16; i++) {
+        float temp = tire_report_msg.fl_tire_temperature[i];
+        tire_temp_report_msg.front_left.mean += temp; 
+
+        temp = tire_report_msg.fr_tire_temperature[i];
+        tire_temp_report_msg.front_right.mean += temp;
+
+        temp = tire_report_msg.rl_tire_temperature[i];
+        tire_temp_report_msg.rear_left.mean += temp;
+
+        temp = tire_report_msg.rr_tire_temperature[i];
+        tire_temp_report_msg.rear_right.mean += temp;
+    }
+
+    std::sort(fl_temps.begin(), fl_temps.end());
+    std::sort(fr_temps.begin(), fr_temps.end());
+    std::sort(rl_temps.begin(), rl_temps.end());
+    std::sort(rr_temps.begin(), rr_temps.end());
+
+    tire_temp_report_msg.front_left.median = (fl_temps[15/2] + fl_temps[16/2])/2.0;
+    tire_temp_report_msg.front_right.median = (fr_temps[15/2] + fr_temps[16/2])/2.0;
+    tire_temp_report_msg.rear_left.median = (rl_temps[15/2] + fl_temps[16/2])/2.0;
+    tire_temp_report_msg.rear_right.median = (rr_temps[15/2] + rr_temps[16/2])/2.0;
+
+    tire_temp_report_msg.front_left.mean /= 16;
+    tire_temp_report_msg.front_right.mean /= 16;
+    tire_temp_report_msg.rear_left.mean /= 16;
+    tire_temp_report_msg.rear_right.mean /= 16; 
+
+    tire_temp_report_msg.front_left.min = fl_temps[0];
+    tire_temp_report_msg.front_right.min = fr_temps[0];
+    tire_temp_report_msg.rear_left.min = rl_temps[0];
+    tire_temp_report_msg.rear_right.min = rr_temps[0];
+
+    tire_temp_report_msg.front_left.max = fl_temps[15];
+    tire_temp_report_msg.front_right.max = fr_temps[15];
+    tire_temp_report_msg.rear_left.max = rl_temps[15];
+    tire_temp_report_msg.rear_right.max = rr_temps[15];
+    
+}
+
 void DbwNode::recvBrakeCmd(
     const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg) {
     NewEagle::DbcMessage* message = dbwDbc_.GetMessage("brake_pressure_cmd");
@@ -904,6 +958,8 @@ void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg) {
 
 void DbwNode::timerTireCallback() {
     pub_tire_report_->publish(tire_report_msg);
+    generateTireTemp();
+    pub_tire_temp_report_->publish(tire_temp_report_msg);
 }
 
 void DbwNode::timerPtCallback() { pub_pt_report_->publish(pt_report_msg); }
