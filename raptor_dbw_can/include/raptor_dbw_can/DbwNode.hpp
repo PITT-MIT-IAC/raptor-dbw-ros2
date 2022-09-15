@@ -44,7 +44,7 @@
 #include <can_dbc_parser/DbcBuilder.hpp>
 #include <can_dbc_parser/DbcMessage.hpp>
 #include <can_dbc_parser/DbcSignal.hpp>
-#include <raptor_dbw_can/dispatch.hpp>
+#include <raptor_dbw_can/DbwDispatch.hpp>
 
 // ROS messages
 #include <can_msgs/msg/frame.hpp>

@@ -21,7 +21,7 @@ ament_auto_find_build_dependencies()
 
 
 ament_auto_add_executable(${PROJECT_NAME}_node
-  src/node.cpp
+  src/RaptorDbwNode.cpp
   src/DbwNode.cpp
 )
 

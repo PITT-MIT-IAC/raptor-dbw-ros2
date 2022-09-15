@@ -497,6 +497,9 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     pt_report_msg.engine_oil_temperature =
                         message->GetSignal("engine_oil_temperature")
                             ->GetResult();
+                    pt_report_msg.torque_wheels =
+                        message->GetSignal("torque_wheels")
+                            ->GetResult();
                 }
             } break;
 
