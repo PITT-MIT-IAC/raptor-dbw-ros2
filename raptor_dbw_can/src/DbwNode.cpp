@@ -234,19 +234,26 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     auto vehicle_flag = message->GetSignal("Marelli_Vehicle_Flag")->GetResult();
 
                     if (track_flag == 9) {
+                        // yellow
                         track_flag = 3;
                     } else if (track_flag == 3) {
+                        // red
                         track_flag = 1;
                     } else if (track_flag == 1) {
+                        // green
                         track_flag = 4;
                     }
 
-                    // receiving orange, send last flag
                     if (vehicle_flag == 6) {
+                        // receiving orange, send last flag
                         track_flag = 2;
                         vehicle_flag = last_vehicle_flag_;
                     } else if (vehicle_flag == 15) {
+                        // purple
                         vehicle_flag = 8;
+                    } else if (vehicle_flag == 4) {
+                        // black
+                        vehicle_flag = 2;
                     }
 
                     last_vehicle_flag_ = vehicle_flag;
