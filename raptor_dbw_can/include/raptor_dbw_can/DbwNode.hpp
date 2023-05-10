@@ -100,6 +100,8 @@ class DbwNode : public rclcpp::Node {
     deep_orange_msgs::msg::MyLapsReport mylaps_report_msg;
     deep_orange_msgs::msg::TireTempReport tire_temp_report_msg;
 
+    uint8_t last_vehicle_flag_ = 0;
+
     // Subscribed topics
     rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
     rclcpp::Subscription<raptor_dbw_msgs::msg::BrakeCmd>::SharedPtr sub_brake_;
@@ -115,6 +117,8 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
     rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr
         pub_flags_;
+    rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr
+        pub_flags_marelli_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr
         pub_accel_pedal_;  // acc pedal report do
     rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr
@@ -137,6 +141,7 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr
         pub_misc_do_;
     rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
+    rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_marelli_;
     rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr
         pub_tire_report_;
     rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr
