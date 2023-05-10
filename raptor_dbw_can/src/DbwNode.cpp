@@ -254,6 +254,9 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     } else if (vehicle_flag == 4) {
                         // black
                         vehicle_flag = 2;
+                    } else if (vehicle_flag == 8) {
+                        // shutdown, but can be interpreted as purple
+                        vehicle_flag = last_vehicle_flag_;
                     }
 
                     last_vehicle_flag_ = vehicle_flag;
