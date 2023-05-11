@@ -281,7 +281,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
 
             case ID_MARELLI_REPORT_2: {
                 NewEagle::DbcMessage* message =
-                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_1);
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_2);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
                     marelli_report_msg.lte_sync_ok = message->GetSignal("lte_sync_ok")->GetResult();
@@ -292,7 +292,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
 
             case ID_MARELLI_REPORT_3: {
                 NewEagle::DbcMessage* message =
-                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_1);
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_3);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
                     marelli_report_msg.lat = message->GetSignal("GPS_Lat")->GetResult();
