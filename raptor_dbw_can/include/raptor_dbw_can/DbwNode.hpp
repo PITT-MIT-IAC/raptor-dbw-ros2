@@ -68,6 +68,7 @@
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
 #include <std_msgs/msg/u_int8.hpp>
 #include <deep_orange_msgs/msg/tire_temp_report.hpp>
+#include <deep_orange_msgs/msg/marelli_report.hpp>
 
 using namespace std::chrono_literals;  // NOLINT
 
@@ -99,6 +100,7 @@ class DbwNode : public rclcpp::Node {
     deep_orange_msgs::msg::TireReport tire_report_msg;
     deep_orange_msgs::msg::MyLapsReport mylaps_report_msg;
     deep_orange_msgs::msg::TireTempReport tire_temp_report_msg;
+    deep_orange_msgs::msg::MarelliReport marelli_report_msg;
 
     uint8_t last_vehicle_flag_ = 0;
 
@@ -154,6 +156,8 @@ class DbwNode : public rclcpp::Node {
         pub_mylaps_report_;
     rclcpp::Publisher<deep_orange_msgs::msg::TireTempReport>::SharedPtr
         pub_tire_temp_report_;
+    rclcpp::Publisher<deep_orange_msgs::msg::MarelliReport>::SharedPtr
+        pub_marelli_report_;
 
     NewEagle::Dbc dbwDbc_;
     std::string dbcFile_;

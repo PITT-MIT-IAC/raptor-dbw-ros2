@@ -107,6 +107,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
             "lap_time_report", 10);
     pub_tire_temp_report_ =
         this->create_publisher<deep_orange_msgs::msg::TireTempReport>("tire_temp_report", 10);
+    pub_marelli_report_ =
+        this->create_publisher<deep_orange_msgs::msg::MarelliReport>("marelli_report", 10);
+
     // Set up Subscribers
     sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
         "can_rx", 500,
@@ -273,6 +276,29 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     btcsum.track_flag = out.track_flag;
                     btcsum.veh_flag = out.veh_flag;
                     pub_flags_marelli_->publish(btcsum);
+                }
+            } break;
+
+            case ID_MARELLI_REPORT_2: {
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_1);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+                    marelli_report_msg.lte_sync_ok = message->GetSignal("lte_sync_ok")->GetResult();
+                    marelli_report_msg.lte_modem_lte_rssi = message->GetSignal("lte_modem_lte_rssi")->GetResult();
+                    marelli_report_msg.stamp = msg->header.stamp;
+                }
+            } break;
+
+            case ID_MARELLI_REPORT_3: {
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_1);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+                    marelli_report_msg.lat = message->GetSignal("GPS_Lat")->GetResult();
+                    marelli_report_msg.lon = message->GetSignal("GPS_Lon")->GetResult();
+                    marelli_report_msg.stamp = msg->header.stamp;
+                    pub_marelli_report_->publish(marelli_report_msg);
                 }
             } break;
 
