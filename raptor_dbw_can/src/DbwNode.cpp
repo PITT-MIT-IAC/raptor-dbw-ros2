@@ -295,8 +295,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     dbwDbc_.GetMessageById(ID_MARELLI_REPORT_3);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
-                    marelli_report_msg.lat = message->GetSignal("GPS_Lat")->GetResult();
-                    marelli_report_msg.lon = message->GetSignal("GPS_Lon")->GetResult();
+                    marelli_report_msg.lat = static_cast<float>(message->GetSignal("GPS_Lat")->GetResult()) * 1e7;
+                    marelli_report_msg.lon = static_cast<float>(message->GetSignal("GPS_Lon")->GetResult()) * 1e7;
                     marelli_report_msg.stamp = msg->header.stamp;
                     pub_marelli_report_->publish(marelli_report_msg);
                 }
