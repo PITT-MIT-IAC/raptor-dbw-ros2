@@ -1,0 +1,68 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 1000 marelli_report_1: 8 Vector__XXX
+ SG_ Marelli_Track_Flag : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Marelli_Vehicle_Flag : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Marelli_Sector_Flag : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1001 marelli_report_2: 8 Vector__XXX
+ SG_ lte_sync_ok : 0|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ lte_modem_lte_rssi : 8|8@1- (1,0) [0|0] "dBm" Vector__XXX
+
+BO_ 1002 marelli_report_3: 8 Vector__XXX
+ SG_ GPS_Lat : 0|32@1- (1e-07,0) [0|0] "°" Vector__XXX
+ SG_ GPS_Lon : 32|32@1- (1e-07,0) [0|0] "°" Vector__XXX
+
+
+
+CM_ BO_ 1000 "Marelli_TX_Report_1";
+CM_ SG_ 1000 Marelli_Track_Flag "last TRACK flag received id";
+CM_ SG_ 1000 Marelli_Vehicle_Flag "last CAR flag received id";
+CM_ SG_ 1000 Marelli_Sector_Flag "last SECTOR flag received id";
+CM_ BO_ 1001 "Marelli_TX_Report_2";
+CM_ BO_ 1002 "Marelli_TX_Report_3";
+CM_ SG_ 1002 GPS_Lat "Latitude";
+CM_ SG_ 1002 GPS_Lon "Longitude";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_ BO_  "GenMsgCycleTime" INT 1 1000;
+BA_DEF_DEF_  "BusType" "";
+BA_DEF_DEF_  "GenMsgCycleTime" 100;
+BA_ "GenMsgCycleTime" BO_ 1000 10;
+BA_ "GenMsgCycleTime" BO_ 1001 10;
+

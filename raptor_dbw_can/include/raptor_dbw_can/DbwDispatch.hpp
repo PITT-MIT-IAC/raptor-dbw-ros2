@@ -113,6 +113,9 @@ enum
   ID_PT_REPORT_3                = 0x053F,
   ID_MYLAPS_REPORT_1            = 0x00E4,
   ID_MYLAPS_REPORT_2            = 0x00E2,
+  ID_MARELLI_REPORT_1           = 0x03E8,
+  ID_MARELLI_REPORT_2           = 0x03E9,
+  ID_MARELLI_REPORT_3           = 0x03EA,
 };
 
 }  // namespace raptor_dbw_can

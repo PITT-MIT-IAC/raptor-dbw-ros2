@@ -51,6 +51,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_flags_ =
         this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
             "flag_report", 20);
+    pub_flags_marelli_ =
+        this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
+            "flag_report/marelli", 20);
     pub_mylaps_report_ =
         this->create_publisher<deep_orange_msgs::msg::MyLapsReport>(
             "mylaps_report", 20);
@@ -89,6 +92,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         "misc_report_do", 10);
     pub_rc_to_ct_ =
         this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 10);
+    pub_rc_to_ct_marelli_ =
+        this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct/marelli", 10);
     pub_tire_report_ =
         this->create_publisher<deep_orange_msgs::msg::TireReport>("tire_report",
                                                                   10);
@@ -102,6 +107,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
             "lap_time_report", 10);
     pub_tire_temp_report_ =
         this->create_publisher<deep_orange_msgs::msg::TireTempReport>("tire_temp_report", 10);
+    pub_marelli_report_ =
+        this->create_publisher<deep_orange_msgs::msg::MarelliReport>("marelli_report", 10);
+
     // Set up Subscribers
     sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
         "can_rx", 500,
@@ -216,6 +224,81 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     btcsum.lap_status_fraction = out.lap_distance;
 
                     pub_flags_->publish(btcsum);
+                }
+            } break;
+
+            case ID_MARELLI_REPORT_1: {
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_1);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+
+                    auto track_flag = message->GetSignal("Marelli_Track_Flag")->GetResult();
+                    auto vehicle_flag = message->GetSignal("Marelli_Vehicle_Flag")->GetResult();
+
+                    if (track_flag == 9) {
+                        // yellow
+                        track_flag = 3;
+                    } else if (track_flag == 3) {
+                        // red
+                        track_flag = 1;
+                    } else if (track_flag == 1) {
+                        // green
+                        track_flag = 4;
+                    }
+
+                    if (vehicle_flag == 6) {
+                        // receiving orange, send last flag
+                        track_flag = 2;
+                        vehicle_flag = last_vehicle_flag_;
+                    } else if (vehicle_flag == 15) {
+                        // purple
+                        vehicle_flag = 8;
+                    } else if (vehicle_flag == 4) {
+                        // black
+                        vehicle_flag = 2;
+                    } else if (vehicle_flag == 8) {
+                        // shutdown, but can be interpreted as purple
+                        vehicle_flag = last_vehicle_flag_;
+                    }
+
+                    last_vehicle_flag_ = vehicle_flag;
+
+                    deep_orange_msgs::msg::RcToCt out;
+                    deep_orange_msgs::msg::BaseToCarSummary btcsum;
+
+                    out.stamp = msg->header.stamp;
+                    out.track_flag = track_flag;
+                    out.veh_flag = vehicle_flag;
+                    pub_rc_to_ct_marelli_->publish(out);
+
+                    btcsum.stamp = msg->header.stamp;
+                    btcsum.track_flag = out.track_flag;
+                    btcsum.veh_flag = out.veh_flag;
+                    pub_flags_marelli_->publish(btcsum);
+                }
+            } break;
+
+            case ID_MARELLI_REPORT_2: {
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_2);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+                    marelli_report_msg.lte_sync_ok = message->GetSignal("lte_sync_ok")->GetResult();
+                    marelli_report_msg.lte_modem_lte_rssi = message->GetSignal("lte_modem_lte_rssi")->GetResult();
+                    marelli_report_msg.stamp = msg->header.stamp;
+                }
+            } break;
+
+            case ID_MARELLI_REPORT_3: {
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_3);
+                if (msg->dlc >= message->GetDlc()) {
+                    message->SetFrame(msg);
+                    marelli_report_msg.lat = static_cast<float>(message->GetSignal("GPS_Lat")->GetResult()) * 1e7;
+                    marelli_report_msg.lon = static_cast<float>(message->GetSignal("GPS_Lon")->GetResult()) * 1e7;
+                    marelli_report_msg.stamp = msg->header.stamp;
+                    pub_marelli_report_->publish(marelli_report_msg);
                 }
             } break;
 
@@ -869,7 +952,7 @@ void DbwNode::generateTireTemp() {
 
     for (int i = 0; i < 16; i++) {
         float temp = tire_report_msg.fl_tire_temperature[i];
-        tire_temp_report_msg.front_left.mean += temp; 
+        tire_temp_report_msg.front_left.mean += temp;
 
         temp = tire_report_msg.fr_tire_temperature[i];
         tire_temp_report_msg.front_right.mean += temp;
@@ -894,7 +977,7 @@ void DbwNode::generateTireTemp() {
     tire_temp_report_msg.front_left.mean /= 16;
     tire_temp_report_msg.front_right.mean /= 16;
     tire_temp_report_msg.rear_left.mean /= 16;
-    tire_temp_report_msg.rear_right.mean /= 16; 
+    tire_temp_report_msg.rear_right.mean /= 16;
 
     tire_temp_report_msg.front_left.min = fl_temps[0];
     tire_temp_report_msg.front_right.min = fr_temps[0];
@@ -905,7 +988,7 @@ void DbwNode::generateTireTemp() {
     tire_temp_report_msg.front_right.max = fr_temps[15];
     tire_temp_report_msg.rear_left.max = rl_temps[15];
     tire_temp_report_msg.rear_right.max = rr_temps[15];
-    
+
 }
 
 void DbwNode::recvBrakeCmd(
