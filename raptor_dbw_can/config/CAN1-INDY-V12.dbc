@@ -295,7 +295,7 @@ BO_ 226 mylaps_report_2: 8 Vector__XXX
  SG_ Longitude : 32|32@1- (1e-07,0) [0|0] "" Vector__XXX
 
 BO_ 1405 dash_switches_cmd: 8 Vector__XXX
- SG_ driver_traction_aim_swicth : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ driver_traction_aim_switch : 0|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ driver_traction_range_switch : 4|4@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 1406 ct_vehicle_acc_feedback: 8 Vector__XXX

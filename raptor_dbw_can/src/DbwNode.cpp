@@ -145,6 +145,10 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         "/novatel_top/rawimux", 1,
         std::bind(&DbwNode::imuCallback, this, std::placeholders::_1));
 
+    sub_dash_cmds_ = this->create_subscription<std_msgs::msg::UInt8MultiArray>(
+        "dashboard_cmd", 1,
+        std::bind(&DbwNode::recvDashSwitches, this, std::placeholders::_1));
+
     dbwDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFile_);
 
     // Set up Timer
@@ -1085,6 +1089,38 @@ void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
         ->SetResult(msg->linear_acceleration.y);
     message->GetSignal("vertical_ct_vehicle_acc_fbk")
         ->SetResult(msg->linear_acceleration.z);
+    can_msgs::msg::Frame frame = message->GetFrame();
+    pub_can_->publish(frame);
+}
+
+void DbwNode::recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr msg) {
+    NewEagle::DbcMessage* message = dbwDbc_.GetMessage("dash_switches_cmd");
+    if (msg->data.size() >= 2) {
+        switch (msg->data[0]) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                message->GetSignal("driver_traction_aim_switch")->SetResult(msg->data[0]);
+                break;
+            default:
+                message->GetSignal("driver_traction_aim_switch")->SetResult(0);
+                break;
+        }
+        switch (msg->data[1]) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                message->GetSignal("driver_traction_range_switch")->SetResult(msg->data[1]);
+            break;
+            default:
+                message->GetSignal("driver_traction_range_switch")->SetResult(0);
+                break;
+        }
+    }
     can_msgs::msg::Frame frame = message->GetFrame();
     pub_can_->publish(frame);
 }

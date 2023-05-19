@@ -70,6 +70,7 @@
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <std_msgs/msg/u_int8.hpp>
+#include <std_msgs/msg/u_int8_multi_array.hpp>
 
 
 using namespace std::chrono_literals;  // NOLINT
@@ -94,6 +95,7 @@ class DbwNode : public rclcpp::Node {
     void recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg);
     void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
     void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
+    void recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr msg);
 
     rclcpp::TimerBase::SharedPtr timer_tire_report_;
     rclcpp::TimerBase::SharedPtr timer_pt_report_;
@@ -118,6 +120,7 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr
         sub_ct_report_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
+    rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr sub_dash_cmds_;
 
     // Published topics
     rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
