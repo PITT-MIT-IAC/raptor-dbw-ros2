@@ -1093,7 +1093,8 @@ void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
     pub_can_->publish(frame);
 }
 
-void DbwNode::recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr msg) {
+void DbwNode::recvDashSwitches(
+    const std_msgs::msg::UInt8MultiArray::SharedPtr msg) {
     NewEagle::DbcMessage* message = dbwDbc_.GetMessage("dash_switches_cmd");
     if (msg->data.size() >= 2) {
         switch (msg->data[0]) {
@@ -1102,10 +1103,10 @@ void DbwNode::recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr m
             case 2:
             case 3:
             case 4:
-                message->GetSignal("driver_traction_aim_switch")->SetResult(msg->data[0]);
+                last_traction_aim_ = msg->data[0];
                 break;
             default:
-                message->GetSignal("driver_traction_aim_switch")->SetResult(0);
+                last_traction_aim_ = 0;
                 break;
         }
         switch (msg->data[1]) {
@@ -1114,10 +1115,10 @@ void DbwNode::recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr m
             case 2:
             case 3:
             case 4:
-                message->GetSignal("driver_traction_range_switch")->SetResult(msg->data[1]);
-            break;
+                last_driver_traction_range_switch_ = msg->data[1];
+                break;
             default:
-                message->GetSignal("driver_traction_range_switch")->SetResult(0);
+                last_driver_traction_range_switch_ = 0;
                 break;
         }
     }
@@ -1136,6 +1137,14 @@ void DbwNode::timerTireCallback() {
     pub_tire_report_->publish(tire_report_msg);
     generateTireTemp();
     pub_tire_temp_report_->publish(tire_temp_report_msg);
+
+    NewEagle::DbcMessage* message = dbwDbc_.GetMessage("dash_switches_cmd");
+    message->GetSignal("driver_traction_aim_switch")
+        ->SetResult(last_traction_aim_);
+    message->GetSignal("driver_traction_range_switch")
+        ->SetResult(last_driver_traction_range_switch_);
+    can_msgs::msg::Frame frame = message->GetFrame();
+    pub_can_->publish(frame);
 }
 
 void DbwNode::timerPtCallback() { pub_pt_report_->publish(pt_report_msg); }

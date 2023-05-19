@@ -170,6 +170,10 @@ class DbwNode : public rclcpp::Node {
     std::string dbcFile_;
     double wheel_speed_cov_;
     static constexpr double kph2ms = 1.0 / 3.6;
+
+    //! Driver Dash Switches States
+    uint8_t last_driver_traction_range_switch_ = 0;
+    uint8_t last_traction_aim_ = 0;
 };
 
 }  // namespace raptor_dbw_can
