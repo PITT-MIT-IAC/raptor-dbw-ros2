@@ -116,6 +116,8 @@ enum
   ID_MARELLI_REPORT_1           = 0x03E8,
   ID_MARELLI_REPORT_2           = 0x03E9,
   ID_MARELLI_REPORT_3           = 0x03EA,
+  ID_DASH_SWITCHES_CMD          = 0x057D,
+  ID_CT_VEHICLE_ACC_FEEDBACK    = 0x057E,
 };
 
 }  // namespace raptor_dbw_can

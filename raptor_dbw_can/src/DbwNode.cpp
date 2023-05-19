@@ -138,6 +138,11 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         "ct_report", 1,
         std::bind(&DbwNode::recvCtReport, this, std::placeholders::_1));
 
+    sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
+        "/novatel_top/rawimux", 1,
+        std::bind(&DbwNode::imuCallback, this, std::placeholders::_1)
+    );
+
     dbwDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFile_);
 
     // Set up Timer
@@ -1045,6 +1050,19 @@ void DbwNode::recvCtReport(
 
     can_msgs::msg::Frame frame = message->GetFrame();
 
+    pub_can_->publish(frame);
+}
+
+void DbwNode::imuCallback(
+    const sensor_msgs::msg::Imu::SharedPtr msg) {
+    NewEagle::DbcMessage* message = dbwDbc_.GetMessage("ct_vehicle_acc_feedback");
+    message->GetSignal("long_ct_vehicle_acc_fbk")->SetResult(
+        msg->linear_acceleration.x);
+    message->GetSignal("lat_ct_vehicle_acc_fbk")->SetResult(
+        msg->linear_acceleration.y);
+    message->GetSignal("vertical_ct_vehicle_acc_fbk")->SetResult(
+        msg->linear_acceleration.z);
+    can_msgs::msg::Frame frame = message->GetFrame();
     pub_can_->publish(frame);
 }
 
