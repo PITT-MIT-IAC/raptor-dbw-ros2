@@ -30,17 +30,16 @@
 
 #include "raptor_dbw_can/DbwNode.hpp"
 
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-  rclcpp::NodeOptions options;
-  rclcpp::executors::SingleThreadedExecutor exec;
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::NodeOptions options;
+    rclcpp::executors::SingleThreadedExecutor exec;
 
-  auto node = std::make_shared<raptor_dbw_can::DbwNode>(options);
-  exec.add_node(node->get_node_base_interface());
-  exec.spin();
+    auto node = std::make_shared<raptor_dbw_can::DbwNode>(options);
+    exec.add_node(node->get_node_base_interface());
+    exec.spin();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return 0;
+    return 0;
 }

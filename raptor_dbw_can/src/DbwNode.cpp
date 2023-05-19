@@ -93,7 +93,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_rc_to_ct_ =
         this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 10);
     pub_rc_to_ct_marelli_ =
-        this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct/marelli", 10);
+        this->create_publisher<deep_orange_msgs::msg::RcToCt>(
+            "rc_to_ct/marelli", 10);
     pub_tire_report_ =
         this->create_publisher<deep_orange_msgs::msg::TireReport>("tire_report",
                                                                   10);
@@ -106,9 +107,11 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         this->create_publisher<deep_orange_msgs::msg::LapTimeReport>(
             "lap_time_report", 10);
     pub_tire_temp_report_ =
-        this->create_publisher<deep_orange_msgs::msg::TireTempReport>("tire_temp_report", 10);
+        this->create_publisher<deep_orange_msgs::msg::TireTempReport>(
+            "tire_temp_report", 10);
     pub_marelli_report_ =
-        this->create_publisher<deep_orange_msgs::msg::MarelliReport>("marelli_report", 10);
+        this->create_publisher<deep_orange_msgs::msg::MarelliReport>(
+            "marelli_report", 10);
 
     // Set up Subscribers
     sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
@@ -140,8 +143,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
 
     sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
         "/novatel_top/rawimux", 1,
-        std::bind(&DbwNode::imuCallback, this, std::placeholders::_1)
-    );
+        std::bind(&DbwNode::imuCallback, this, std::placeholders::_1));
 
     dbwDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFile_);
 
@@ -176,22 +178,28 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
             } break;
 
             case ID_MYLAPS_REPORT_1: {
-                NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MYLAPS_REPORT_1);
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MYLAPS_REPORT_1);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
                     mylaps_report_msg.stamp = msg->header.stamp;
-                    mylaps_report_msg.speed = message->GetSignal("mylaps_speed")->GetResult();
-                    mylaps_report_msg.heading = message->GetSignal("mylaps_heading")->GetResult();
+                    mylaps_report_msg.speed =
+                        message->GetSignal("mylaps_speed")->GetResult();
+                    mylaps_report_msg.heading =
+                        message->GetSignal("mylaps_heading")->GetResult();
                 }
             } break;
 
             case ID_MYLAPS_REPORT_2: {
-                NewEagle::DbcMessage* message = dbwDbc_.GetMessageById(ID_MYLAPS_REPORT_2);
+                NewEagle::DbcMessage* message =
+                    dbwDbc_.GetMessageById(ID_MYLAPS_REPORT_2);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
                     mylaps_report_msg.stamp = msg->header.stamp;
-                    mylaps_report_msg.lat = message->GetSignal("Latitude")->GetResult();
-                    mylaps_report_msg.lon = message->GetSignal("Longitude")->GetResult();
+                    mylaps_report_msg.lat =
+                        message->GetSignal("Latitude")->GetResult();
+                    mylaps_report_msg.lon =
+                        message->GetSignal("Longitude")->GetResult();
                 }
             } break;
 
@@ -223,7 +231,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     btcsum.track_flag = out.track_flag;
                     btcsum.veh_flag = out.veh_flag;
                     btcsum.veh_rank = out.veh_rank;
-                    btcsum.round_target_speed = message->GetSignal("round_target_speed")->GetResult();
+                    btcsum.round_target_speed =
+                        message->GetSignal("round_target_speed")->GetResult();
                     // TODO fix these fields
                     btcsum.lap_status_whole = out.lap_count;
                     btcsum.lap_status_fraction = out.lap_distance;
@@ -238,8 +247,10 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
 
-                    auto track_flag = message->GetSignal("Marelli_Track_Flag")->GetResult();
-                    auto vehicle_flag = message->GetSignal("Marelli_Vehicle_Flag")->GetResult();
+                    auto track_flag =
+                        message->GetSignal("Marelli_Track_Flag")->GetResult();
+                    auto vehicle_flag =
+                        message->GetSignal("Marelli_Vehicle_Flag")->GetResult();
 
                     if (track_flag == 9) {
                         // yellow
@@ -289,8 +300,10 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     dbwDbc_.GetMessageById(ID_MARELLI_REPORT_2);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
-                    marelli_report_msg.lte_sync_ok = message->GetSignal("lte_sync_ok")->GetResult();
-                    marelli_report_msg.lte_modem_lte_rssi = message->GetSignal("lte_modem_lte_rssi")->GetResult();
+                    marelli_report_msg.lte_sync_ok =
+                        message->GetSignal("lte_sync_ok")->GetResult();
+                    marelli_report_msg.lte_modem_lte_rssi =
+                        message->GetSignal("lte_modem_lte_rssi")->GetResult();
                     marelli_report_msg.stamp = msg->header.stamp;
                 }
             } break;
@@ -300,8 +313,14 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     dbwDbc_.GetMessageById(ID_MARELLI_REPORT_3);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
-                    marelli_report_msg.lat = static_cast<float>(message->GetSignal("GPS_Lat")->GetResult()) * 1e7;
-                    marelli_report_msg.lon = static_cast<float>(message->GetSignal("GPS_Lon")->GetResult()) * 1e7;
+                    marelli_report_msg.lat =
+                        static_cast<float>(
+                            message->GetSignal("GPS_Lat")->GetResult()) *
+                        1e7;
+                    marelli_report_msg.lon =
+                        static_cast<float>(
+                            message->GetSignal("GPS_Lon")->GetResult()) *
+                        1e7;
                     marelli_report_msg.stamp = msg->header.stamp;
                     pub_marelli_report_->publish(marelli_report_msg);
                 }
@@ -350,7 +369,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                         out.front_left * kph2ms;
                     front_left_speed_msg.twist.covariance[0] = wheel_speed_cov_;
                     front_left_speed_msg.twist.covariance[7] = wheel_speed_cov_;
-                    front_left_speed_msg.twist.covariance[14] = wheel_speed_cov_;
+                    front_left_speed_msg.twist.covariance[14] =
+                        wheel_speed_cov_;
 
                     front_right_speed_msg.twist.twist.linear.x =
                         out.front_right * kph2ms;
@@ -371,7 +391,8 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                         out.rear_right * kph2ms;
                     back_right_speed_msg.twist.covariance[0] = wheel_speed_cov_;
                     back_right_speed_msg.twist.covariance[7] = wheel_speed_cov_;
-                    back_right_speed_msg.twist.covariance[14] = wheel_speed_cov_;
+                    back_right_speed_msg.twist.covariance[14] =
+                        wheel_speed_cov_;
 
                     pub_wheel_speeds_->publish(out);
                     pub_front_left_wheel_speed_->publish(front_left_speed_msg);
@@ -599,8 +620,7 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                         message->GetSignal("engine_oil_temperature")
                             ->GetResult();
                     pt_report_msg.torque_wheels =
-                        message->GetSignal("torque_wheels")
-                            ->GetResult();
+                        message->GetSignal("torque_wheels")->GetResult();
                 }
             } break;
 
@@ -987,10 +1007,14 @@ void DbwNode::generateTireTemp() {
     std::sort(rl_temps.begin(), rl_temps.end());
     std::sort(rr_temps.begin(), rr_temps.end());
 
-    tire_temp_report_msg.front_left.median = (fl_temps[15/2] + fl_temps[16/2])/2.0;
-    tire_temp_report_msg.front_right.median = (fr_temps[15/2] + fr_temps[16/2])/2.0;
-    tire_temp_report_msg.rear_left.median = (rl_temps[15/2] + fl_temps[16/2])/2.0;
-    tire_temp_report_msg.rear_right.median = (rr_temps[15/2] + rr_temps[16/2])/2.0;
+    tire_temp_report_msg.front_left.median =
+        (fl_temps[15 / 2] + fl_temps[16 / 2]) / 2.0;
+    tire_temp_report_msg.front_right.median =
+        (fr_temps[15 / 2] + fr_temps[16 / 2]) / 2.0;
+    tire_temp_report_msg.rear_left.median =
+        (rl_temps[15 / 2] + fl_temps[16 / 2]) / 2.0;
+    tire_temp_report_msg.rear_right.median =
+        (rr_temps[15 / 2] + rr_temps[16 / 2]) / 2.0;
 
     tire_temp_report_msg.front_left.mean /= 16;
     tire_temp_report_msg.front_right.mean /= 16;
@@ -1006,7 +1030,6 @@ void DbwNode::generateTireTemp() {
     tire_temp_report_msg.front_right.max = fr_temps[15];
     tire_temp_report_msg.rear_left.max = rl_temps[15];
     tire_temp_report_msg.rear_right.max = rr_temps[15];
-
 }
 
 void DbwNode::recvBrakeCmd(
@@ -1053,15 +1076,15 @@ void DbwNode::recvCtReport(
     pub_can_->publish(frame);
 }
 
-void DbwNode::imuCallback(
-    const sensor_msgs::msg::Imu::SharedPtr msg) {
-    NewEagle::DbcMessage* message = dbwDbc_.GetMessage("ct_vehicle_acc_feedback");
-    message->GetSignal("long_ct_vehicle_acc_fbk")->SetResult(
-        msg->linear_acceleration.x);
-    message->GetSignal("lat_ct_vehicle_acc_fbk")->SetResult(
-        msg->linear_acceleration.y);
-    message->GetSignal("vertical_ct_vehicle_acc_fbk")->SetResult(
-        msg->linear_acceleration.z);
+void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
+    NewEagle::DbcMessage* message =
+        dbwDbc_.GetMessage("ct_vehicle_acc_feedback");
+    message->GetSignal("long_ct_vehicle_acc_fbk")
+        ->SetResult(msg->linear_acceleration.x);
+    message->GetSignal("lat_ct_vehicle_acc_fbk")
+        ->SetResult(msg->linear_acceleration.y);
+    message->GetSignal("vertical_ct_vehicle_acc_fbk")
+        ->SetResult(msg->linear_acceleration.z);
     can_msgs::msg::Frame frame = message->GetFrame();
     pub_can_->publish(frame);
 }
