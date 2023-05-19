@@ -1084,11 +1084,11 @@ void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
     NewEagle::DbcMessage* message =
         dbwDbc_.GetMessage("ct_vehicle_acc_feedback");
     message->GetSignal("long_ct_vehicle_acc_fbk")
-        ->SetResult(msg->linear_acceleration.x);
+        ->SetResult(msg->linear_acceleration.x / GRAVITY);
     message->GetSignal("lat_ct_vehicle_acc_fbk")
-        ->SetResult(msg->linear_acceleration.y);
+        ->SetResult(msg->linear_acceleration.y / GRAVITY);
     message->GetSignal("vertical_ct_vehicle_acc_fbk")
-        ->SetResult(msg->linear_acceleration.z);
+        ->SetResult((msg->linear_acceleration.z - GRAVITY) / GRAVITY);
     can_msgs::msg::Frame frame = message->GetFrame();
     pub_can_->publish(frame);
 }

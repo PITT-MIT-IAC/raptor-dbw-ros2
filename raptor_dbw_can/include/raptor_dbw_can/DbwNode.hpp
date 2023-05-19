@@ -72,6 +72,7 @@
 #include <std_msgs/msg/u_int8.hpp>
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 
+static const double GRAVITY = 9.81;
 
 using namespace std::chrono_literals;  // NOLINT
 
