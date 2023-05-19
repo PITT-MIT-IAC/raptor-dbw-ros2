@@ -344,16 +344,29 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     front_left_speed_msg.twist.twist.linear.x =
                         out.front_left * kph2ms;
                     front_left_speed_msg.twist.covariance[0] = wheel_speed_cov_;
+                    front_left_speed_msg.twist.covariance[7] = wheel_speed_cov_;
+                    front_left_speed_msg.twist.covariance[14] = wheel_speed_cov_;
+
                     front_right_speed_msg.twist.twist.linear.x =
                         out.front_right * kph2ms;
                     front_right_speed_msg.twist.covariance[0] =
                         wheel_speed_cov_;
+                    front_right_speed_msg.twist.covariance[7] =
+                        wheel_speed_cov_;
+                    front_right_speed_msg.twist.covariance[14] =
+                        wheel_speed_cov_;
+
                     back_left_speed_msg.twist.twist.linear.x =
                         out.rear_left * kph2ms;
                     back_left_speed_msg.twist.covariance[0] = wheel_speed_cov_;
+                    back_left_speed_msg.twist.covariance[7] = wheel_speed_cov_;
+                    back_left_speed_msg.twist.covariance[14] = wheel_speed_cov_;
+
                     back_right_speed_msg.twist.twist.linear.x =
                         out.rear_right * kph2ms;
                     back_right_speed_msg.twist.covariance[0] = wheel_speed_cov_;
+                    back_right_speed_msg.twist.covariance[7] = wheel_speed_cov_;
+                    back_right_speed_msg.twist.covariance[14] = wheel_speed_cov_;
 
                     pub_wheel_speeds_->publish(out);
                     pub_front_left_wheel_speed_->publish(front_left_speed_msg);
