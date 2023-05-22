@@ -52,11 +52,13 @@
 #include <deep_orange_msgs/msg/ct_report.hpp>
 #include <deep_orange_msgs/msg/diagnostic_report.hpp>
 #include <deep_orange_msgs/msg/lap_time_report.hpp>
+#include <deep_orange_msgs/msg/marelli_report.hpp>
 #include <deep_orange_msgs/msg/misc_report.hpp>
 #include <deep_orange_msgs/msg/my_laps_report.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
 #include <deep_orange_msgs/msg/rc_to_ct.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
+#include <deep_orange_msgs/msg/tire_temp_report.hpp>
 #include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include <raptor_dbw_msgs/msg/accelerator_pedal_cmd.hpp>
 #include <raptor_dbw_msgs/msg/accelerator_pedal_report.hpp>
@@ -66,9 +68,11 @@
 #include <raptor_dbw_msgs/msg/steering_extended_report.hpp>
 #include <raptor_dbw_msgs/msg/steering_report.hpp>
 #include <raptor_dbw_msgs/msg/wheel_speed_report.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 #include <std_msgs/msg/u_int8.hpp>
-#include <deep_orange_msgs/msg/tire_temp_report.hpp>
-#include <deep_orange_msgs/msg/marelli_report.hpp>
+#include <std_msgs/msg/u_int8_multi_array.hpp>
+
+static const double GRAVITY = 9.81;
 
 using namespace std::chrono_literals;  // NOLINT
 
@@ -91,6 +95,8 @@ class DbwNode : public rclcpp::Node {
         const raptor_dbw_msgs::msg::SteeringCmd::SharedPtr msg);
     void recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg);
     void recvCtReport(const deep_orange_msgs::msg::CtReport::SharedPtr msg);
+    void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
+    void recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr msg);
 
     rclcpp::TimerBase::SharedPtr timer_tire_report_;
     rclcpp::TimerBase::SharedPtr timer_pt_report_;
@@ -114,6 +120,8 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr sub_gear_shift_cmd_;
     rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr
         sub_ct_report_;
+    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
+    rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr sub_dash_cmds_;
 
     // Published topics
     rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
@@ -163,6 +171,10 @@ class DbwNode : public rclcpp::Node {
     std::string dbcFile_;
     double wheel_speed_cov_;
     static constexpr double kph2ms = 1.0 / 3.6;
+
+    //! Driver Dash Switches States
+    uint8_t last_driver_traction_range_switch_ = 0;
+    uint8_t last_traction_aim_ = 0;
 };
 
 }  // namespace raptor_dbw_can
