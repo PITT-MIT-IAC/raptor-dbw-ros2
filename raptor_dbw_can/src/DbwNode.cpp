@@ -50,7 +50,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_can_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 20);
     pub_flags_ =
         this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
-            "flag_report", 20);
+            "flag_report/mylaps", 20);
     pub_flags_marelli_ =
         this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
             "flag_report/marelli", 20);
@@ -91,7 +91,7 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_misc_do_ = this->create_publisher<deep_orange_msgs::msg::MiscReport>(
         "misc_report_do", 10);
     pub_rc_to_ct_ =
-        this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct", 10);
+        this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct/mylaps", 10);
     pub_rc_to_ct_marelli_ =
         this->create_publisher<deep_orange_msgs::msg::RcToCt>(
             "rc_to_ct/marelli", 10);
