@@ -90,8 +90,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
 
     pub_misc_do_ = this->create_publisher<deep_orange_msgs::msg::MiscReport>(
         "misc_report_do", 10);
-    pub_rc_to_ct_ =
-        this->create_publisher<deep_orange_msgs::msg::RcToCt>("rc_to_ct/mylaps", 10);
+    pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>(
+        "rc_to_ct/mylaps", 10);
     pub_rc_to_ct_marelli_ =
         this->create_publisher<deep_orange_msgs::msg::RcToCt>(
             "rc_to_ct/marelli", 10);
@@ -251,10 +251,33 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
 
+                    // race control flags
                     auto track_flag =
-                        message->GetSignal("Marelli_Track_Flag")->GetResult();
+                        message->GetSignal("marelli_track_flag")->GetResult();
                     auto vehicle_flag =
-                        message->GetSignal("Marelli_Vehicle_Flag")->GetResult();
+                        message->GetSignal("marelli_vehicle_flag")->GetResult();
+                    auto sector_flag =
+                        message->GetSignal("marelli_sector_flag")->GetResult();
+
+                    // marelli report fields
+                    marelli_report_msg.lte_sync_ok =
+                        message->GetSignal("marelli_rc_base_sync_check")
+                            ->GetResult();
+                    marelli_report_msg.lte_modem_lte_rssi =
+                        message->GetSignal("marelli_rc_lte_rssi")->GetResult();
+                    marelli_report_msg.stamp = msg->header.stamp;
+
+                    NewEagle::DbcMessage* ct_report_2_message =
+                        dbwDbc_.GetMessage("ct_report_2");
+                    ct_report_2_message->GetSignal("marelli_track_flag_ack")
+                        ->SetResult(track_flag);
+                    ct_report_2_message->GetSignal("marelli_vehicle_flag_ack")
+                        ->SetResult(vehicle_flag);
+                    ct_report_2_message->GetSignal("marelli_sector_flag_ack")
+                        ->SetResult(sector_flag);
+                    can_msgs::msg::Frame frame =
+                        ct_report_2_message->GetFrame();
+                    pub_can_->publish(frame);
 
                     if (track_flag == 9) {
                         // yellow
@@ -304,26 +327,14 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     dbwDbc_.GetMessageById(ID_MARELLI_REPORT_2);
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
-                    marelli_report_msg.lte_sync_ok =
-                        message->GetSignal("lte_sync_ok")->GetResult();
-                    marelli_report_msg.lte_modem_lte_rssi =
-                        message->GetSignal("lte_modem_lte_rssi")->GetResult();
-                    marelli_report_msg.stamp = msg->header.stamp;
-                }
-            } break;
-
-            case ID_MARELLI_REPORT_3: {
-                NewEagle::DbcMessage* message =
-                    dbwDbc_.GetMessageById(ID_MARELLI_REPORT_3);
-                if (msg->dlc >= message->GetDlc()) {
-                    message->SetFrame(msg);
                     marelli_report_msg.lat =
-                        static_cast<float>(
-                            message->GetSignal("GPS_Lat")->GetResult()) *
+                        static_cast<float>(message->GetSignal("marelli_gps_lat")
+                                               ->GetResult()) *
                         1e7;
                     marelli_report_msg.lon =
                         static_cast<float>(
-                            message->GetSignal("GPS_Lon")->GetResult()) *
+                            message->GetSignal("marelli_gps_long")
+                                ->GetResult()) *
                         1e7;
                     marelli_report_msg.stamp = msg->header.stamp;
                     pub_marelli_report_->publish(marelli_report_msg);
@@ -625,6 +636,12 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                             ->GetResult();
                     pt_report_msg.torque_wheels =
                         message->GetSignal("torque_wheels")->GetResult();
+                    pt_report_msg.driver_traction_aim_switch =
+                        message->GetSignal("driver_traction_aim_swicth_fbk")
+                            ->GetResult();
+                    pt_report_msg.driver_traction_range_switch =
+                        message->GetSignal("driver_traction_range_switch_fbk")
+                            ->GetResult();
                 }
             } break;
 

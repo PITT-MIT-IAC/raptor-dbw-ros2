@@ -105,19 +105,16 @@ enum
   ID_TIRE_TEMP_RR_2             = 0x0539,
   ID_TIRE_TEMP_RR_3             = 0x053A,
   ID_TIRE_TEMP_RR_4             = 0x053B,
-  ID_VEL_ACC_HIL                = 0x05DD,
-  ID_POSITION_HEADING_HIL       = 0x05DC,
   ID_PT_REPORT_1                = 0x053C,
   ID_PT_REPORT_2                = 0x053D,
   ID_DIAG_REPORT                = 0x053E,
   ID_PT_REPORT_3                = 0x053F,
   ID_MYLAPS_REPORT_1            = 0x00E4,
   ID_MYLAPS_REPORT_2            = 0x00E2,
-  ID_MARELLI_REPORT_1           = 0x03E8,
-  ID_MARELLI_REPORT_2           = 0x03E9,
-  ID_MARELLI_REPORT_3           = 0x03EA,
-  ID_DASH_SWITCHES_CMD          = 0x057D,
-  ID_CT_VEHICLE_ACC_FEEDBACK    = 0x057E,
+  ID_MARELLI_REPORT_1           = 0x04E2,
+  ID_MARELLI_REPORT_2           = 0x04E3,
+  ID_DASH_SWITCHES_CMD          = 0x057E,
+  ID_CT_VEHICLE_ACC_FEEDBACK    = 0x05AA,
 };
 
 }  // namespace raptor_dbw_can
