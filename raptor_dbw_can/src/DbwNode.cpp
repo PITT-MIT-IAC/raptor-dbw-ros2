@@ -279,28 +279,32 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                         ct_report_2_message->GetFrame();
                     pub_can_->publish(frame);
 
-                    if (track_flag == 9) {
-                        // yellow
-                        track_flag = 3;
-                    } else if (track_flag == 3) {
+                    if (track_flag == 3 || vehicle_flag == 34) {
                         // red
                         track_flag = 1;
+                        vehicle_flag = 0;
+                    } else if (track_flag == 9) {
+                        // yellow
+                        track_flag = 3;
                     } else if (track_flag == 1) {
                         // green
                         track_flag = 4;
+                    } else if (track_flag == 37) {
+                        // waving green
+                        track_flag = 8;
                     }
 
-                    if (vehicle_flag == 6) {
+                    if (vehicle_flag == 25) {
                         // receiving orange, send last flag
                         track_flag = 2;
                         vehicle_flag = last_vehicle_flag_;
-                    } else if (vehicle_flag == 15) {
+                    } else if (vehicle_flag == 32) {
                         // purple
                         vehicle_flag = 8;
                     } else if (vehicle_flag == 4) {
                         // black
                         vehicle_flag = 2;
-                    } else if (vehicle_flag == 8) {
+                    } else if (vehicle_flag == 33) {
                         // shutdown, but can be interpreted as purple
                         vehicle_flag = last_vehicle_flag_;
                     }
