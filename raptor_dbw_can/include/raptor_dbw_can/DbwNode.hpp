@@ -48,7 +48,6 @@
 
 // ROS messages
 #include <can_msgs/msg/frame.hpp>
-#include <deep_orange_msgs/msg/base_to_car_summary.hpp>
 #include <deep_orange_msgs/msg/ct_report.hpp>
 #include <deep_orange_msgs/msg/diagnostic_report.hpp>
 #include <deep_orange_msgs/msg/lap_time_report.hpp>
@@ -56,7 +55,7 @@
 #include <deep_orange_msgs/msg/misc_report.hpp>
 #include <deep_orange_msgs/msg/my_laps_report.hpp>
 #include <deep_orange_msgs/msg/pt_report.hpp>
-#include <deep_orange_msgs/msg/rc_to_ct.hpp>
+#include <deep_orange_msgs/msg/race_control_report.hpp>
 #include <deep_orange_msgs/msg/tire_report.hpp>
 #include <deep_orange_msgs/msg/tire_temp_report.hpp>
 #include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
@@ -107,8 +106,7 @@ class DbwNode : public rclcpp::Node {
     deep_orange_msgs::msg::MyLapsReport mylaps_report_msg;
     deep_orange_msgs::msg::TireTempReport tire_temp_report_msg;
     deep_orange_msgs::msg::MarelliReport marelli_report_msg;
-
-    uint8_t last_vehicle_flag_ = 0;
+    deep_orange_msgs::msg::RaceControlReport rc_report_msg;
 
     // Subscribed topics
     rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
@@ -121,23 +119,22 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Subscription<deep_orange_msgs::msg::CtReport>::SharedPtr
         sub_ct_report_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
-    rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr sub_dash_cmds_;
+    rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr
+        sub_dash_cmds_;
 
-    // Published topics
+    //! Published topics
     rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
-    rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr
-        pub_flags_;
-    rclcpp::Publisher<deep_orange_msgs::msg::BaseToCarSummary>::SharedPtr
-        pub_flags_marelli_;
+    rclcpp::Publisher<deep_orange_msgs::msg::RaceControlReport>::SharedPtr
+        pub_rc_report_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::AcceleratorPedalReport>::SharedPtr
-        pub_accel_pedal_;  // acc pedal report do
+        pub_accel_pedal_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringReport>::SharedPtr
-        pub_steering_;  // steering report do
+        pub_steering_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::SteeringExtendedReport>::SharedPtr
         pub_steering_ext_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::WheelSpeedReport>::SharedPtr
-        pub_wheel_speeds_;  // wheelspeedreport do
-    // publish wheel speeds separately
+        pub_wheel_speeds_;
+    //! publish wheel speeds separately
     rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
         pub_front_left_wheel_speed_;
     rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
@@ -147,11 +144,9 @@ class DbwNode : public rclcpp::Node {
     rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
         pub_back_right_wheel_speed_;
     rclcpp::Publisher<raptor_dbw_msgs::msg::Brake2Report>::SharedPtr
-        pub_brake_2_report_;  // brake report do
+        pub_brake_2_report_;
     rclcpp::Publisher<deep_orange_msgs::msg::MiscReport>::SharedPtr
         pub_misc_do_;
-    rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_;
-    rclcpp::Publisher<deep_orange_msgs::msg::RcToCt>::SharedPtr pub_rc_to_ct_marelli_;
     rclcpp::Publisher<deep_orange_msgs::msg::TireReport>::SharedPtr
         pub_tire_report_;
     rclcpp::Publisher<deep_orange_msgs::msg::PtReport>::SharedPtr
@@ -173,8 +168,10 @@ class DbwNode : public rclcpp::Node {
     static constexpr double kph2ms = 1.0 / 3.6;
 
     //! Driver Dash Switches States
-    uint8_t last_driver_traction_range_switch_ = 0;
-    uint8_t last_traction_aim_ = 0;
+    static constexpr uint8_t TRACTION_AIM_DEFAULT = 2;
+    static constexpr uint8_t TRACTION_RANGE_DEFAULT = 3;
+    uint8_t last_driver_traction_range_switch_ = TRACTION_RANGE_DEFAULT;
+    uint8_t last_traction_aim_ = TRACTION_AIM_DEFAULT;
 };
 
 }  // namespace raptor_dbw_can
