@@ -168,7 +168,7 @@ class DbwNode : public rclcpp::Node {
     static constexpr double kph2ms = 1.0 / 3.6;
 
     //! Driver Dash Switches States
-    static constexpr uint8_t TRACTION_AIM_DEFAULT = 2;
+    static constexpr uint8_t TRACTION_AIM_DEFAULT = 3;
     static constexpr uint8_t TRACTION_RANGE_DEFAULT = 3;
     uint8_t last_driver_traction_range_switch_ = TRACTION_RANGE_DEFAULT;
     uint8_t last_traction_aim_ = TRACTION_AIM_DEFAULT;
