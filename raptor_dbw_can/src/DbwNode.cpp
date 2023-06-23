@@ -48,12 +48,9 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
 
     // Set up Publishers
     pub_can_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 20);
-    pub_flags_ =
-        this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
-            "flag_report/mylaps", 20);
-    pub_flags_marelli_ =
-        this->create_publisher<deep_orange_msgs::msg::BaseToCarSummary>(
-            "flag_report/marelli", 20);
+    pub_rc_report_ =
+        this->create_publisher<deep_orange_msgs::msg::RaceControlReport>(
+            "race_control_report", 20);
     pub_mylaps_report_ =
         this->create_publisher<deep_orange_msgs::msg::MyLapsReport>(
             "mylaps_report", 20);
@@ -87,14 +84,8 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     pub_brake_2_report_ =
         this->create_publisher<raptor_dbw_msgs::msg::Brake2Report>(
             "brake_2_report", 20);
-
     pub_misc_do_ = this->create_publisher<deep_orange_msgs::msg::MiscReport>(
         "misc_report_do", 10);
-    pub_rc_to_ct_ = this->create_publisher<deep_orange_msgs::msg::RcToCt>(
-        "rc_to_ct/mylaps", 10);
-    pub_rc_to_ct_marelli_ =
-        this->create_publisher<deep_orange_msgs::msg::RcToCt>(
-            "rc_to_ct/marelli", 10);
     pub_tire_report_ =
         this->create_publisher<deep_orange_msgs::msg::TireReport>("tire_report",
                                                                   10);
@@ -213,35 +204,25 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
 
-                    deep_orange_msgs::msg::RcToCt out;
-                    deep_orange_msgs::msg::BaseToCarSummary btcsum;
-
-                    out.stamp = msg->header.stamp;
-                    out.rolling_counter =
+                    // publish race control report
+                    rc_report_msg.stamp = msg->header.stamp;
+                    rc_report_msg.base_to_car_heartbeat =
                         message->GetSignal("base_to_car_heartbeat")
                             ->GetResult();
-                    out.track_flag =
+                    rc_report_msg.track_flag =
                         message->GetSignal("track_flag")->GetResult();
-                    out.veh_flag = message->GetSignal("veh_flag")->GetResult();
-                    out.veh_rank = message->GetSignal("veh_rank")->GetResult();
-                    out.lap_count =
+                    rc_report_msg.veh_flag =
+                        message->GetSignal("veh_flag")->GetResult();
+                    rc_report_msg.veh_rank =
+                        message->GetSignal("veh_rank")->GetResult();
+                    rc_report_msg.lap_count =
                         message->GetSignal("lap_count")->GetResult();
-                    out.lap_distance =
+                    rc_report_msg.lap_distance =
                         message->GetSignal("lap_distance")->GetResult();
-                    pub_rc_to_ct_->publish(out);
-
-                    btcsum.stamp = msg->header.stamp;
-                    btcsum.base_to_car_heartbeat = out.rolling_counter;
-                    btcsum.track_flag = out.track_flag;
-                    btcsum.veh_flag = out.veh_flag;
-                    btcsum.veh_rank = out.veh_rank;
-                    btcsum.round_target_speed =
+                    rc_report_msg.round_target_speed =
                         message->GetSignal("round_target_speed")->GetResult();
-                    // TODO fix these fields
-                    btcsum.lap_status_whole = out.lap_count;
-                    btcsum.lap_status_fraction = out.lap_distance;
 
-                    pub_flags_->publish(btcsum);
+                    pub_rc_report_->publish(rc_report_msg);
                 }
             } break;
 
@@ -251,22 +232,19 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                 if (msg->dlc >= message->GetDlc()) {
                     message->SetFrame(msg);
 
-                    // race control flags
                     auto track_flag =
                         message->GetSignal("marelli_track_flag")->GetResult();
                     auto vehicle_flag =
                         message->GetSignal("marelli_vehicle_flag")->GetResult();
                     auto sector_flag =
                         message->GetSignal("marelli_sector_flag")->GetResult();
-
-                    // marelli report fields
-                    marelli_report_msg.lte_sync_ok =
+                    auto lte_sync_ok =
                         message->GetSignal("marelli_rc_base_sync_check")
                             ->GetResult();
-                    marelli_report_msg.lte_modem_lte_rssi =
+                    auto lte_modem_lte_rssi =
                         message->GetSignal("marelli_rc_lte_rssi")->GetResult();
-                    marelli_report_msg.stamp = msg->header.stamp;
 
+                    // acknowledge flags
                     NewEagle::DbcMessage* ct_report_2_message =
                         dbwDbc_.GetMessage("ct_report_2");
                     ct_report_2_message->GetSignal("marelli_track_flag_ack")
@@ -279,50 +257,19 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                         ct_report_2_message->GetFrame();
                     pub_can_->publish(frame);
 
-                    if (track_flag == 3 || vehicle_flag == 34) {
-                        // red
-                        track_flag = 1;
-                        vehicle_flag = 0;
-                    } else if (track_flag == 9) {
-                        // yellow
-                        track_flag = 3;
-                    } else if (track_flag == 1) {
-                        // green
-                        track_flag = 4;
-                    } else if (track_flag == 37) {
-                        // waving green
-                        track_flag = 8;
-                    }
+                    // publish race control report
+                    rc_report_msg.stamp = msg->header.stamp;
+                    rc_report_msg.marelli_track_flag = track_flag;
+                    rc_report_msg.marelli_vehicle_flag = vehicle_flag;
+                    rc_report_msg.marelli_sector_flag = sector_flag;
+                    rc_report_msg.lte_modem_lte_rssi = lte_modem_lte_rssi;
+                    rc_report_msg.lte_sync_ok = lte_sync_ok;
+                    pub_rc_report_->publish(rc_report_msg);
 
-                    if (vehicle_flag == 25) {
-                        // receiving orange, send last flag
-                        track_flag = 2;
-                        vehicle_flag = last_vehicle_flag_;
-                    } else if (vehicle_flag == 32) {
-                        // purple
-                        vehicle_flag = 8;
-                    } else if (vehicle_flag == 4) {
-                        // black
-                        vehicle_flag = 2;
-                    } else if (vehicle_flag == 33) {
-                        // shutdown, but can be interpreted as purple
-                        vehicle_flag = last_vehicle_flag_;
-                    }
-
-                    last_vehicle_flag_ = vehicle_flag;
-
-                    deep_orange_msgs::msg::RcToCt out;
-                    deep_orange_msgs::msg::BaseToCarSummary btcsum;
-
-                    out.stamp = msg->header.stamp;
-                    out.track_flag = track_flag;
-                    out.veh_flag = vehicle_flag;
-                    pub_rc_to_ct_marelli_->publish(out);
-
-                    btcsum.stamp = msg->header.stamp;
-                    btcsum.track_flag = out.track_flag;
-                    btcsum.veh_flag = out.veh_flag;
-                    pub_flags_marelli_->publish(btcsum);
+                    // set marelli report fields
+                    marelli_report_msg.lte_sync_ok = lte_sync_ok;
+                    marelli_report_msg.lte_modem_lte_rssi = lte_modem_lte_rssi;
+                    marelli_report_msg.stamp = msg->header.stamp;
                 }
             } break;
 
@@ -565,26 +512,6 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                     out.rc_lost = message->GetSignal("rc_lost")->GetResult();
 
                     pub_diag_report_->publish(out);
-                }
-            } break;
-
-            case ID_RC_TO_CT: {
-                NewEagle::DbcMessage* message =
-                    dbwDbc_.GetMessageById(ID_RC_TO_CT);
-                if (msg->dlc >= message->GetDlc()) {
-                    message->SetFrame(msg);
-
-                    deep_orange_msgs::msg::RcToCt out;
-                    out.stamp = msg->header.stamp;
-                    // out.current_position  =
-                    // message->GetSignal("DBW_CurrentPosition")->GetResult();
-                    out.track_flag =
-                        message->GetSignal("track_cond")->GetResult();
-                    // TODO: adding statements for arrays of black checkered
-                    // purple flags trackpositions
-                    out.rolling_counter =
-                        message->GetSignal("rc_rolling_counter")->GetResult();
-                    pub_rc_to_ct_->publish(out);
                 }
             } break;
 
@@ -1127,7 +1054,7 @@ void DbwNode::recvDashSwitches(
                 last_traction_aim_ = msg->data[0];
                 break;
             default:
-                last_traction_aim_ = 0;
+                last_traction_aim_ = TRACTION_AIM_DEFAULT;
                 break;
         }
         switch (msg->data[1]) {
@@ -1139,7 +1066,7 @@ void DbwNode::recvDashSwitches(
                 last_driver_traction_range_switch_ = msg->data[1];
                 break;
             default:
-                last_driver_traction_range_switch_ = 0;
+                last_driver_traction_range_switch_ = TRACTION_RANGE_DEFAULT;
                 break;
         }
     }
