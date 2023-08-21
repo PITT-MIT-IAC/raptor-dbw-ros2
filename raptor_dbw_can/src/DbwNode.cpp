@@ -46,8 +46,12 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         tire_report_msg.rr_tire_temperature.push_back(-1.0);
     }
 
+    use_socketcan = this->declare_parameter<bool>("use_socketcan", false);
+
     // Set up Publishers
-    pub_can_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 20);
+    if (use_socketcan) {
+        pub_can_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 20);
+    }
     pub_rc_report_ =
         this->create_publisher<deep_orange_msgs::msg::RaceControlReport>(
             "race_control_report", 20);
@@ -105,10 +109,11 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
             "marelli_report", 10);
 
     // Set up Subscribers
-    sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
-        "can_rx", 500,
-        std::bind(&DbwNode::recvCAN, this, std::placeholders::_1));
-
+    if (use_socketcan) {
+        sub_can_ = this->create_subscription<can_msgs::msg::Frame>(
+            "can_rx", 500,
+            std::bind(&DbwNode::recvCAN, this, std::placeholders::_1));
+    }
     sub_brake_ = this->create_subscription<raptor_dbw_msgs::msg::BrakeCmd>(
         "brake_cmd", 1,
         std::bind(&DbwNode::recvBrakeCmd, this, std::placeholders::_1));
@@ -149,9 +154,94 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
         10ms, std::bind(&DbwNode::timerPtCallback, this));
     timer_mylaps_report_ = this->create_wall_timer(
         200ms, std::bind(&DbwNode::timerMyLapsReportCallback, this));
+
+    // set up CAN interfaces
+    if (!use_socketcan) {
+        interface_ = this->declare_parameter("interface", "can0");
+        use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
+        interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::duration<double>(
+                this->declare_parameter<double>("interval_sec", 0.01)));
+
+        try {
+            can_receiver_ =
+                std::make_unique<drivers::socketcan::SocketCanReceiver>(
+                    interface_);
+            can_sender_ = std::make_unique<drivers::socketcan::SocketCanSender>(
+                interface_);
+        } catch (const std::exception& ex) {
+            RCLCPP_ERROR(this->get_logger(),
+                         "Error opening CAN receiver: %s - %s",
+                         interface_.c_str(), ex.what());
+            throw std::runtime_error(
+                "Raptor Can Node: Error setting up CAN receiver");
+        }
+
+        RCLCPP_DEBUG(this->get_logger(), "Receiver successfully configured.");
+        receiver_thread_ =
+            std::make_unique<std::thread>(&DbwNode::receive, this);
+    }
 }
 
 DbwNode::~DbwNode() {}
+
+void DbwNode::sendFrame(const can_msgs::msg::Frame& msg) {
+    drivers::socketcan::FrameType type;
+    if (msg.is_rtr) {
+        type = drivers::socketcan::FrameType::REMOTE;
+    } else if (msg.is_error) {
+        type = drivers::socketcan::FrameType::ERROR;
+    } else {
+        type = drivers::socketcan::FrameType::DATA;
+    }
+
+    drivers::socketcan::CanId send_id =
+        msg.is_extended
+            ? drivers::socketcan::CanId(msg.id, 0, type,
+                                        drivers::socketcan::ExtendedFrame)
+            : drivers::socketcan::CanId(msg.id, 0, type,
+                                        drivers::socketcan::StandardFrame);
+    try {
+        can_sender_->send(msg.data.data(), msg.dlc, send_id, interval_ns_);
+    } catch (const std::exception& ex) {
+        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+                             "Error sending CAN message: %s", ex.what());
+        return;
+    }
+}
+
+void DbwNode::receive() {
+    drivers::socketcan::CanId receive_id{};
+
+    while (rclcpp::ok()) {
+        can_msgs::msg::Frame msg(
+            rosidl_runtime_cpp::MessageInitialization::ZERO);
+
+        try {
+            receive_id = can_receiver_->receive(msg.data.data(), interval_ns_);
+        } catch (const std::exception& ex) {
+            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+                                 "Error receiving CAN message: %s - %s",
+                                 interface_.c_str(), ex.what());
+            continue;
+        }
+
+        if (use_bus_time_) {
+            msg.header.stamp = rclcpp::Time(
+                static_cast<int64_t>(receive_id.get_bus_time() * 1000U));
+        } else {
+            msg.header.stamp = this->now();
+        }
+        msg.id = receive_id.identifier();
+        msg.is_rtr =
+            (receive_id.frame_type() == drivers::socketcan::FrameType::REMOTE);
+        msg.is_extended = receive_id.is_extended();
+        msg.is_error =
+            (receive_id.frame_type() == drivers::socketcan::FrameType::ERROR);
+        msg.dlc = receive_id.length();
+        recvCAN(std::make_shared<can_msgs::msg::Frame>(msg));
+    }
+}
 
 void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
     if (!msg->is_rtr && !msg->is_error) {
@@ -255,7 +345,11 @@ void DbwNode::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
                         ->SetResult(sector_flag);
                     can_msgs::msg::Frame frame =
                         ct_report_2_message->GetFrame();
-                    pub_can_->publish(frame);
+                    if (use_socketcan) {
+                        pub_can_->publish(frame);
+                    } else {
+                        sendFrame(frame);
+                    }
 
                     // publish race control report
                     rc_report_msg.stamp = msg->header.stamp;
@@ -991,7 +1085,11 @@ void DbwNode::recvBrakeCmd(
     message->GetSignal("brk_pressure_cmd_counter")
         ->SetResult(msg->rolling_counter);
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::recvAcceleratorPedalCmd(
@@ -1001,7 +1099,11 @@ void DbwNode::recvAcceleratorPedalCmd(
     message->GetSignal("acc_pedal_cmd_counter")
         ->SetResult(msg->rolling_counter);
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::recvSteeringCmd(
@@ -1011,7 +1113,11 @@ void DbwNode::recvSteeringCmd(
     message->GetSignal("steering_motor_cmd_counter")
         ->SetResult(msg->rolling_counter);
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::recvCtReport(
@@ -1025,7 +1131,11 @@ void DbwNode::recvCtReport(
 
     can_msgs::msg::Frame frame = message->GetFrame();
 
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
@@ -1038,7 +1148,11 @@ void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
     message->GetSignal("vertical_ct_vehicle_acc_fbk")
         ->SetResult((msg->linear_acceleration.z - GRAVITY) / GRAVITY);
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    };
 }
 
 void DbwNode::recvDashSwitches(
@@ -1071,14 +1185,22 @@ void DbwNode::recvDashSwitches(
         }
     }
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg) {
     NewEagle::DbcMessage* message = dbwDbc_.GetMessage("gear_shift_cmd");
     message->GetSignal("desired_gear")->SetResult(msg->data);
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::timerTireCallback() {
@@ -1092,7 +1214,11 @@ void DbwNode::timerTireCallback() {
     message->GetSignal("driver_traction_range_switch")
         ->SetResult(last_driver_traction_range_switch_);
     can_msgs::msg::Frame frame = message->GetFrame();
-    pub_can_->publish(frame);
+    if (use_socketcan) {
+        pub_can_->publish(frame);
+    } else {
+        sendFrame(frame);
+    }
 }
 
 void DbwNode::timerPtCallback() { pub_pt_report_->publish(pt_report_msg); }
