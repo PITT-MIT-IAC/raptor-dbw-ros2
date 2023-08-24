@@ -45,6 +45,8 @@
 #include <can_dbc_parser/DbcMessage.hpp>
 #include <can_dbc_parser/DbcSignal.hpp>
 #include <raptor_dbw_can/DbwDispatch.hpp>
+#include <ros2_socketcan/socket_can_receiver.hpp>
+#include <ros2_socketcan/socket_can_sender.hpp>
 
 // ROS messages
 #include <can_msgs/msg/frame.hpp>
@@ -82,6 +84,8 @@ class DbwNode : public rclcpp::Node {
     ~DbwNode();
 
    private:
+    void sendFrame(const can_msgs::msg::Frame& msg);
+    void receive();
     void timerTireCallback();
     void timerPtCallback();
     void timerMyLapsReportCallback();
@@ -172,6 +176,15 @@ class DbwNode : public rclcpp::Node {
     static constexpr uint8_t TRACTION_RANGE_DEFAULT = 3;
     uint8_t last_driver_traction_range_switch_ = TRACTION_RANGE_DEFAULT;
     uint8_t last_traction_aim_ = TRACTION_AIM_DEFAULT;
+
+    //! CAN interfacing
+    bool use_socketcan;
+    bool use_bus_time_;
+    std::string interface_;
+    std::chrono::nanoseconds interval_ns_;
+    std::unique_ptr<drivers::socketcan::SocketCanReceiver> can_receiver_;
+    std::unique_ptr<drivers::socketcan::SocketCanSender> can_sender_;
+    std::unique_ptr<std::thread> receiver_thread_;
 };
 
 }  // namespace raptor_dbw_can
