@@ -86,9 +86,8 @@ class DbwNode : public rclcpp::Node {
    private:
     void sendFrame(const can_msgs::msg::Frame& msg);
     void receive();
-    void timerTireCallback();
-    void timerPtCallback();
-    void timerMyLapsReportCallback();
+    void timerHighRateCallback();
+    void timerLowRateCallback();
     void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
     void generateTireTemp();
     void recvBrakeCmd(const raptor_dbw_msgs::msg::BrakeCmd::SharedPtr msg);
@@ -101,9 +100,8 @@ class DbwNode : public rclcpp::Node {
     void imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
     void recvDashSwitches(const std_msgs::msg::UInt8MultiArray::SharedPtr msg);
 
-    rclcpp::TimerBase::SharedPtr timer_tire_report_;
-    rclcpp::TimerBase::SharedPtr timer_pt_report_;
-    rclcpp::TimerBase::SharedPtr timer_mylaps_report_;
+    rclcpp::TimerBase::SharedPtr timer_high_rate_;
+    rclcpp::TimerBase::SharedPtr timer_low_rate_;
 
     deep_orange_msgs::msg::PtReport pt_report_msg;
     deep_orange_msgs::msg::TireReport tire_report_msg;
