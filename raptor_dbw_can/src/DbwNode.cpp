@@ -148,12 +148,10 @@ DbwNode::DbwNode(const rclcpp::NodeOptions& options)
     dbwDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFile_);
 
     // Set up Timer
-    timer_tire_report_ = this->create_wall_timer(
-        10ms, std::bind(&DbwNode::timerTireCallback, this));
-    timer_pt_report_ = this->create_wall_timer(
-        10ms, std::bind(&DbwNode::timerPtCallback, this));
-    timer_mylaps_report_ = this->create_wall_timer(
-        200ms, std::bind(&DbwNode::timerMyLapsReportCallback, this));
+    timer_high_rate_ = this->create_wall_timer(
+        10ms, std::bind(&DbwNode::timerHighRateCallback, this));
+    timer_low_rate_ = this->create_wall_timer(
+        200ms, std::bind(&DbwNode::timerLowRateCallback, this));
 
     // set up CAN interfaces
     if (!use_socketcan) {
@@ -1157,7 +1155,6 @@ void DbwNode::imuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
 
 void DbwNode::recvDashSwitches(
     const std_msgs::msg::UInt8MultiArray::SharedPtr msg) {
-    NewEagle::DbcMessage* message = dbwDbc_.GetMessage("dash_switches_cmd");
     if (msg->data.size() >= 2) {
         switch (msg->data[0]) {
             case 0:
@@ -1184,12 +1181,6 @@ void DbwNode::recvDashSwitches(
                 break;
         }
     }
-    can_msgs::msg::Frame frame = message->GetFrame();
-    if (use_socketcan) {
-        pub_can_->publish(frame);
-    } else {
-        sendFrame(frame);
-    }
 }
 
 void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg) {
@@ -1203,9 +1194,10 @@ void DbwNode::recvGearShiftCmd(const std_msgs::msg::UInt8::SharedPtr msg) {
     }
 }
 
-void DbwNode::timerTireCallback() {
-    pub_tire_report_->publish(tire_report_msg);
+void DbwNode::timerHighRateCallback() {
     generateTireTemp();
+    pub_pt_report_->publish(pt_report_msg);
+    pub_tire_report_->publish(tire_report_msg);
     pub_tire_temp_report_->publish(tire_temp_report_msg);
 
     NewEagle::DbcMessage* message = dbwDbc_.GetMessage("dash_switches_cmd");
@@ -1221,9 +1213,7 @@ void DbwNode::timerTireCallback() {
     }
 }
 
-void DbwNode::timerPtCallback() { pub_pt_report_->publish(pt_report_msg); }
-
-void DbwNode::timerMyLapsReportCallback() {
+void DbwNode::timerLowRateCallback() {
     pub_mylaps_report_->publish(mylaps_report_msg);
 }
 
