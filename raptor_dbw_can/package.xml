@@ -18,8 +18,6 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>can_dbc_parser</depend>
-  <depend>pdu</depend>
-  <depend>pdu_msgs</depend>
   <depend>ros2_socketcan</depend>
 
   <test_depend>ament_lint_auto</test_depend>
